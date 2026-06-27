@@ -33,7 +33,7 @@ const announcements = [
 const tagStyle: Record<string, string> = {
   Exam: "bg-red-50 text-red-600",
   Academic: "bg-blue-50 text-blue-600",
-  Notice: "bg-gray-100 text-gray-500",
+  Notice: "bg-gray-100 text-gray-600",
 };
 
 export default function Overview() {
@@ -42,7 +42,7 @@ export default function Overview() {
       {/* Greeting */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Good morning, John 👋</h2>
-        <p className="text-gray-400 text-sm mt-0.5">Semester 1 · Academic Year 2025/2026 · BSc Computer Science</p>
+        <p className="text-gray-600 text-sm mt-0.5">Semester 1 · Academic Year 2025/2026 · BSc Computer Science</p>
       </div>
 
       {/* Stat cards */}
@@ -50,7 +50,7 @@ export default function Overview() {
         {stats.map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.color}`}>
                   <Icon size={18} />
@@ -58,8 +58,8 @@ export default function Overview() {
                 <ArrowUpRight size={16} className="text-gray-300" />
               </div>
               <p className="text-3xl font-bold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-400 mt-1">{s.label}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+              <p className="text-xs text-gray-600 mt-1">{s.label}</p>
+              <p className="text-xs text-gray-600 mt-0.5">{s.sub}</p>
             </div>
           );
         })}
@@ -68,11 +68,11 @@ export default function Overview() {
       {/* Chart + sidebar */}
       <div className="grid grid-cols-3 gap-4">
         {/* Grade chart */}
-        <div className="col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="font-semibold text-gray-900">Grade Overview</p>
-              <p className="text-xs text-gray-400 mt-0.5">Assignments vs Mid-term by course</p>
+              <p className="text-xs text-gray-600 mt-0.5">Assignments vs Mid-term by course</p>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -94,7 +94,7 @@ export default function Overview() {
         {/* Right column */}
         <div className="flex flex-col gap-4">
           {/* Upcoming */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex-1">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 flex-1">
             <p className="font-semibold text-gray-900 mb-4">Upcoming Deadlines</p>
             <div className="flex flex-col gap-3">
               {upcoming.map((item) => (
@@ -102,7 +102,7 @@ export default function Overview() {
                   <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${item.urgent ? "bg-red-400" : "bg-gray-300"}`} />
                   <div className="min-w-0">
                     <p className="text-sm text-gray-800 font-medium truncate">{item.task}</p>
-                    <p className="text-xs text-gray-400">{item.course} · Due {item.due}</p>
+                    <p className="text-xs text-gray-600">{item.course} · Due {item.due}</p>
                   </div>
                 </div>
               ))}
@@ -112,7 +112,7 @@ export default function Overview() {
       </div>
 
       {/* Announcements */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
         <p className="font-semibold text-gray-900 mb-4">Announcements</p>
         <div className="divide-y divide-gray-50">
           {announcements.map((a) => (
@@ -121,7 +121,7 @@ export default function Overview() {
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${tagStyle[a.tag]}`}>{a.tag}</span>
                 <p className="text-sm text-gray-800">{a.title}</p>
               </div>
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-gray-600">
                 <Clock size={12} />
                 <span className="text-xs">{a.date}</span>
                 <ChevronRight size={14} />

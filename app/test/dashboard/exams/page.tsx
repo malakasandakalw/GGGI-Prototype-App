@@ -38,31 +38,31 @@ export default function ExamRegistration() {
           { label: "Registered", value: registeredCount },
           { label: "Remaining", value: examList.length - registeredCount },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-              <FileText size={18} className="text-indigo-600" />
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <FileText size={18} className="text-blue-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-400">{s.label}</p>
+              <p className="text-xs text-gray-600">{s.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
           <p className="font-semibold text-gray-900">Mid-term Examinations</p>
-          <span className="text-xs text-gray-400">Jul 14–18, 2026</span>
+          <span className="text-xs text-gray-600">Jul 14–18, 2026</span>
         </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-50">
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Course</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Date & Time</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Duration</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Venue</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Course</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Date & Time</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Duration</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Venue</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</th>
               <th className="px-6 py-3" />
             </tr>
           </thead>
@@ -71,11 +71,11 @@ export default function ExamRegistration() {
               <tr key={e.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <p className="font-medium text-gray-900">{e.name}</p>
-                  <p className="text-xs text-indigo-500 font-mono mt-0.5">{e.code}</p>
+                  <p className="text-xs text-blue-500 font-mono mt-0.5">{e.code}</p>
                 </td>
                 <td className="px-6 py-4">
                   <p className="text-gray-800 font-medium">{e.date}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{e.time}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{e.time}</p>
                 </td>
                 <td className="px-6 py-4 text-gray-600">{e.duration}</td>
                 <td className="px-6 py-4 text-gray-600">{e.venue}</td>
@@ -86,7 +86,7 @@ export default function ExamRegistration() {
                 </td>
                 <td className="px-6 py-4 text-right">
                   {!e.registered && (
-                    <button onClick={() => setConfirmExam(e)} className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors">Register</button>
+                    <button onClick={() => setConfirmExam(e)} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors">Register</button>
                   )}
                 </td>
               </tr>
@@ -97,12 +97,12 @@ export default function ExamRegistration() {
 
       {confirmExam && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-gray-200 relative">
             <button onClick={() => setConfirmExam(null)} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-gray-100">
-              <X size={16} className="text-gray-400" />
+              <X size={16} className="text-gray-600" />
             </button>
             <h2 className="text-lg font-bold text-gray-900 mb-1">Confirm Registration</h2>
-            <p className="text-sm text-gray-400 mb-5">Review exam details before registering</p>
+            <p className="text-sm text-gray-600 mb-5">Review exam details before registering</p>
             <div className="bg-gray-50 rounded-xl p-4 mb-5 text-sm space-y-2">
               {[
                 { label: "Course", value: confirmExam.name },
@@ -111,17 +111,17 @@ export default function ExamRegistration() {
                 { label: "Venue", value: confirmExam.venue },
               ].map((r) => (
                 <div key={r.label} className="flex justify-between">
-                  <span className="text-gray-400">{r.label}</span>
+                  <span className="text-gray-600">{r.label}</span>
                   <span className="text-gray-900 font-medium">{r.value}</span>
                 </div>
               ))}
             </div>
             <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Special Requirements <span className="text-gray-400 font-normal">(optional)</span></label>
-              <input value={specialNeeds} onChange={(e) => setSpecialNeeds(e.target.value)} placeholder="e.g. Extra time, wheelchair access" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300" />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Special Requirements <span className="text-gray-600 font-normal">(optional)</span></label>
+              <input value={specialNeeds} onChange={(e) => setSpecialNeeds(e.target.value)} placeholder="e.g. Extra time, wheelchair access" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-300" />
             </div>
             <div className="flex gap-3">
-              <button onClick={handleRegister} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-sm font-medium transition-colors">Confirm Registration</button>
+              <button onClick={handleRegister} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-2.5 text-sm font-medium transition-colors">Confirm Registration</button>
               <button onClick={() => setConfirmExam(null)} className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function ExamRegistration() {
       )}
 
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl flex items-center gap-2">
+        <div className="fixed bottom-6 right-6 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl border border-gray-700 flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
           {toast}
         </div>

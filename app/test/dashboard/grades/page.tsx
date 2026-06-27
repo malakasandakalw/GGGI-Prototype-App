@@ -54,16 +54,16 @@ export default function Grades() {
           { label: "Avg. Assignments", value: `${avgAssignments}%`, sub: "Across all courses" },
           { label: "Avg. Mid-term", value: `${avgMidterm}%`, sub: "Across all courses" },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5">
             <p className="text-3xl font-bold text-gray-900">{s.value}</p>
-            <p className="text-xs text-gray-400 mt-1">{s.label}</p>
+            <p className="text-xs text-gray-600 mt-1">{s.label}</p>
             <p className="text-xs text-gray-300 mt-0.5">{s.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Current semester */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
           <p className="font-semibold text-gray-900">Current Semester</p>
           <span className="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">In Progress</span>
@@ -71,11 +71,11 @@ export default function Grades() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-50">
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Course</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Assignments</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide w-40">Progress</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Mid-term</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Final</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Course</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Assignments</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide w-40">Progress</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Mid-term</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Final</th>
             </tr>
           </thead>
           <tbody>
@@ -83,12 +83,12 @@ export default function Grades() {
               <tr key={g.code} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <p className="font-medium text-gray-900">{g.name}</p>
-                  <p className="text-xs text-indigo-500 font-mono mt-0.5">{g.code}</p>
+                  <p className="text-xs text-blue-500 font-mono mt-0.5">{g.code}</p>
                 </td>
                 <td className="px-6 py-4 font-semibold text-gray-900">{g.assignments}%</td>
                 <td className="px-6 py-4">
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div className="h-1.5 rounded-full bg-indigo-500" style={{ width: `${g.assignments}%` }} />
+                    <div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${g.assignments}%` }} />
                   </div>
                 </td>
                 <td className="px-6 py-4 font-semibold text-gray-900">{g.midterm}%</td>
@@ -100,16 +100,16 @@ export default function Grades() {
       </div>
 
       {/* Previous semester */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-50">
           <p className="font-semibold text-gray-900">Previous Semester</p>
         </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-50">
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Course</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Final Grade</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">GPA Points</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Course</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Final Grade</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">GPA Points</th>
               <th className="px-6 py-3" />
             </tr>
           </thead>
@@ -118,7 +118,7 @@ export default function Grades() {
               <tr key={g.code} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <p className="font-medium text-gray-900">{g.name}</p>
-                  <p className="text-xs text-indigo-500 font-mono mt-0.5">{g.code}</p>
+                  <p className="text-xs text-blue-500 font-mono mt-0.5">{g.code}</p>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${gradeColor[g.grade] ?? "bg-gray-100 text-gray-600"}`}>{g.grade}</span>
@@ -127,7 +127,7 @@ export default function Grades() {
                 <td className="px-6 py-4 text-right">
                   {appealed.includes(g.code)
                     ? <span className="text-xs text-gray-300">Appeal submitted</span>
-                    : <button onClick={() => setAppealCourse(g)} className="text-xs border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors">Appeal Grade</button>}
+                    : <button onClick={() => setAppealCourse(g)} className="text-xs border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors">Appeal Grade</button>}
                 </td>
               </tr>
             ))}
@@ -138,16 +138,16 @@ export default function Grades() {
       {/* Appeal modal */}
       {appealCourse && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-gray-200 relative">
             <button onClick={() => setAppealCourse(null)} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-gray-100">
-              <X size={16} className="text-gray-400" />
+              <X size={16} className="text-gray-600" />
             </button>
             <h2 className="text-lg font-bold text-gray-900 mb-1">Appeal Grade</h2>
-            <p className="text-sm text-gray-400 mb-5">{appealCourse.name} — Current grade: <span className={`text-xs font-bold px-2 py-0.5 rounded-full ml-1 ${gradeColor[appealCourse.grade] ?? "bg-gray-100 text-gray-600"}`}>{appealCourse.grade}</span></p>
+            <p className="text-sm text-gray-600 mb-5">{appealCourse.name} — Current grade: <span className={`text-xs font-bold px-2 py-0.5 rounded-full ml-1 ${gradeColor[appealCourse.grade] ?? "bg-gray-100 text-gray-600"}`}>{appealCourse.grade}</span></p>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Appeal</label>
-                <select value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300">
+                <select value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-300">
                   <option value="">Select a reason</option>
                   <option>Marking error</option>
                   <option>Missing submission recorded</option>
@@ -157,15 +157,15 @@ export default function Grades() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Explain your appeal in detail..." className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-300 resize-none" />
+                <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Explain your appeal in detail..." className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-300 resize-none" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Document <span className="text-gray-400 font-normal">(optional)</span></label>
-                <input type="file" className="w-full text-sm text-gray-500" />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Document <span className="text-gray-600 font-normal">(optional)</span></label>
+                <input type="file" className="w-full text-sm text-gray-600" />
               </div>
             </div>
             <div className="flex gap-3 mt-5">
-              <button onClick={handleAppeal} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-sm font-medium transition-colors">Submit Appeal</button>
+              <button onClick={handleAppeal} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-2.5 text-sm font-medium transition-colors">Submit Appeal</button>
               <button onClick={() => setAppealCourse(null)} className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
             </div>
           </div>
@@ -173,7 +173,7 @@ export default function Grades() {
       )}
 
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl flex items-center gap-2">
+        <div className="fixed bottom-6 right-6 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl border border-gray-700 flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
           {toast}
         </div>
