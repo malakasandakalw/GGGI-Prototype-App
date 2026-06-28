@@ -1,0 +1,237 @@
+import type { OLCourse, OLEnrollment } from "@/lib/types";
+
+export const olCategories = [
+  "Technology",
+  "Design",
+  "Business",
+  "Data Science",
+  "Personal Development",
+];
+
+export const olCourses: OLCourse[] = [
+  {
+    id: "ol-1",
+    title: "Introduction to UX Design",
+    description:
+      "Learn the fundamentals of user experience design — research, wireframing, prototyping and usability testing.",
+    thumbnail: "",
+    category: "Design",
+    tags: ["ux", "design", "figma"],
+    difficulty: "beginner",
+    estimatedHours: 12,
+    pricing: "free",
+    prerequisitesText: "No prior experience required.",
+    lecturerId: "u-lec2",
+    hodId: "u-hod",
+    status: "published",
+    minimumPassScore: 50,
+    rating: 4.6,
+    whatYouLearn: [
+      "Apply the design thinking process",
+      "Create low and high fidelity wireframes",
+      "Run basic usability tests",
+      "Build an interactive prototype",
+    ],
+    sections: [
+      {
+        id: "ol1-s1",
+        courseId: "ol-1",
+        title: "Foundations of UX",
+        order: 1,
+        lessons: [
+          {
+            id: "ol1-l1",
+            sectionId: "ol1-s1",
+            title: "What is User Experience?",
+            order: 1,
+            isSequential: false,
+            resources: [
+              { id: "olr-1", lectureId: "ol1-l1", title: "Welcome video", type: "video", url: "#", isDownloadable: false, format: "MP4" },
+              { id: "olr-2", lectureId: "ol1-l1", title: "UX overview notes", type: "notes", url: "#", isDownloadable: true, format: "PDF" },
+            ],
+          },
+          {
+            id: "ol1-l2",
+            sectionId: "ol1-s1",
+            title: "The Design Thinking Process",
+            order: 2,
+            isSequential: true,
+            resources: [
+              { id: "olr-3", lectureId: "ol1-l2", title: "Design thinking slides", type: "slides", url: "#", isDownloadable: true, format: "PDF" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "ol1-s2",
+        courseId: "ol-1",
+        title: "Wireframing & Prototyping",
+        order: 2,
+        lessons: [
+          {
+            id: "ol1-l3",
+            sectionId: "ol1-s2",
+            title: "Low-fidelity Wireframes",
+            order: 1,
+            isSequential: true,
+            resources: [
+              { id: "olr-4", lectureId: "ol1-l3", title: "Wireframing demo", type: "video", url: "#", isDownloadable: false, format: "MP4" },
+            ],
+          },
+          {
+            id: "ol1-l4",
+            sectionId: "ol1-s2",
+            title: "Interactive Prototypes",
+            order: 2,
+            isSequential: true,
+            quizId: "ol-qz-1",
+            resources: [
+              { id: "olr-5", lectureId: "ol1-l4", title: "Prototyping guide", type: "reading", url: "#", isDownloadable: true, format: "PDF" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ol-2",
+    title: "Python for Data Analysis",
+    description:
+      "Hands-on introduction to data analysis using Python, pandas and matplotlib.",
+    thumbnail: "",
+    category: "Data Science",
+    tags: ["python", "pandas", "data"],
+    difficulty: "intermediate",
+    estimatedHours: 20,
+    pricing: "paid",
+    price: 7500,
+    prerequisitesText: "Basic programming knowledge recommended.",
+    lecturerId: "u-lec1",
+    hodId: "u-hod",
+    status: "published",
+    minimumPassScore: 60,
+    rating: 4.8,
+    whatYouLearn: [
+      "Manipulate data with pandas",
+      "Clean and transform datasets",
+      "Visualise data with matplotlib",
+      "Perform exploratory analysis",
+    ],
+    sections: [
+      {
+        id: "ol2-s1",
+        courseId: "ol-2",
+        title: "Getting Started",
+        order: 1,
+        lessons: [
+          {
+            id: "ol2-l1",
+            sectionId: "ol2-s1",
+            title: "Python Refresher",
+            order: 1,
+            isSequential: false,
+            resources: [
+              { id: "olr-6", lectureId: "ol2-l1", title: "Setup guide", type: "notes", url: "#", isDownloadable: true, format: "PDF" },
+            ],
+          },
+          {
+            id: "ol2-l2",
+            sectionId: "ol2-s1",
+            title: "Introducing pandas",
+            order: 2,
+            isSequential: true,
+            resources: [
+              { id: "olr-7", lectureId: "ol2-l2", title: "pandas intro video", type: "video", url: "#", isDownloadable: false, format: "MP4" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ol-3",
+    title: "Digital Marketing Essentials",
+    description: "A practical overview of SEO, social media and content marketing.",
+    thumbnail: "",
+    category: "Business",
+    tags: ["marketing", "seo", "social"],
+    difficulty: "beginner",
+    estimatedHours: 8,
+    pricing: "free",
+    prerequisitesText: "None.",
+    lecturerId: "u-lec2",
+    hodId: "u-hod2",
+    status: "published",
+    minimumPassScore: 50,
+    rating: 4.3,
+    whatYouLearn: ["Understand SEO basics", "Plan a content calendar", "Measure campaign performance"],
+    sections: [
+      {
+        id: "ol3-s1",
+        courseId: "ol-3",
+        title: "Marketing Foundations",
+        order: 1,
+        lessons: [
+          {
+            id: "ol3-l1",
+            sectionId: "ol3-s1",
+            title: "The Marketing Funnel",
+            order: 1,
+            isSequential: false,
+            resources: [
+              { id: "olr-8", lectureId: "ol3-l1", title: "Funnel slides", type: "slides", url: "#", isDownloadable: true, format: "PDF" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ol-4",
+    title: "Cloud Computing Foundations",
+    description: "Understand cloud service models, deployment and core AWS concepts.",
+    thumbnail: "",
+    category: "Technology",
+    tags: ["cloud", "aws", "devops"],
+    difficulty: "advanced",
+    estimatedHours: 16,
+    pricing: "paid",
+    price: 9500,
+    prerequisitesText: "Networking and Linux basics.",
+    lecturerId: "u-lec1",
+    hodId: "u-hod",
+    status: "draft",
+    minimumPassScore: 60,
+    rating: 0,
+    whatYouLearn: ["Compare IaaS/PaaS/SaaS", "Deploy a simple cloud app", "Understand cloud security basics"],
+    sections: [],
+  },
+];
+
+export const olEnrollments: OLEnrollment[] = [
+  {
+    studentId: "u-ol1",
+    courseId: "ol-1",
+    enrolledAt: "2025-09-05T10:00:00Z",
+    completedLessonIds: ["ol1-l1", "ol1-l2"],
+    completionPercentage: 50,
+    certificateIssued: false,
+  },
+  {
+    studentId: "u-ol1",
+    courseId: "ol-3",
+    enrolledAt: "2025-10-01T10:00:00Z",
+    completedLessonIds: ["ol3-l1"],
+    completionPercentage: 100,
+    certificateIssued: true,
+    certificateId: "CERT-2025-00148",
+  },
+  {
+    studentId: "u-ol2",
+    courseId: "ol-2",
+    enrolledAt: "2025-11-12T10:00:00Z",
+    completedLessonIds: ["ol2-l1"],
+    completionPercentage: 50,
+    certificateIssued: false,
+  },
+];

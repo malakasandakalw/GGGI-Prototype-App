@@ -1,0 +1,34 @@
+import type { AuditEvent } from "@/lib/types";
+
+export const auditEvents: AuditEvent[] = [
+  { id: "au-1", timestamp: "2026-06-27T09:00:00Z", userId: "u-reg", userName: "Sanduni Jayawardena", role: "registrar", action: "Payment Confirmed", details: "App APP-2026-0004 marked payment confirmed (BT-558831)", ipAddress: "10.0.4.21" },
+  { id: "au-2", timestamp: "2026-06-26T16:30:00Z", userId: "u-hod", userName: "Dr. Ravindra Mendis", role: "hod", action: "Lecture Published", details: "Published 'SQL Fundamentals — SELECT' (CS201)", ipAddress: "10.0.2.10" },
+  { id: "au-3", timestamp: "2026-06-26T09:15:00Z", userId: "u-applicant", userName: "Menaka Ratnayake", role: "cohort-student", action: "Application Submitted", details: "New application APP-2026-0001 for BSc Computer Science", ipAddress: "203.94.1.55" },
+  { id: "au-4", timestamp: "2026-06-25T14:00:00Z", userId: "u-lec1", userName: "Dr. Priyanka Silva", role: "lecturer", action: "Quiz Submitted", details: "Submitted 'Quiz 2 — SQL Basics' for verification", ipAddress: "10.0.3.7" },
+  { id: "au-5", timestamp: "2026-06-24T11:00:00Z", userId: "u-reg", userName: "Sanduni Jayawardena", role: "registrar", action: "Application Status Changed", details: "APP-2026-0002 moved to Under Review", ipAddress: "10.0.4.21" },
+  { id: "au-6", timestamp: "2026-06-22T11:00:00Z", userId: "u-hod2", userName: "Dr. Kumari Bandara", role: "hod", action: "Program Submitted", details: "Submitted 'Diploma in Business Management' for review", ipAddress: "10.0.2.18" },
+  { id: "au-7", timestamp: "2026-06-20T09:00:00Z", userId: "u-hod", userName: "Dr. Ravindra Mendis", role: "hod", action: "Lecture Returned", details: "Returned 'Normalisation (1NF–3NF)' with feedback", ipAddress: "10.0.2.10" },
+  { id: "au-8", timestamp: "2026-06-18T10:00:00Z", userId: "u-sa", userName: "Amara Wickramasinghe", role: "super-admin", action: "Account Created", details: "Created Registrar account for Sanduni Jayawardena", ipAddress: "10.0.1.2" },
+  { id: "au-9", timestamp: "2026-06-15T10:00:00Z", userId: "u-reg", userName: "Sanduni Jayawardena", role: "registrar", action: "Student Enrolled", details: "Enrolled Kasun Rajapaksa (CS2024001)", ipAddress: "10.0.4.21" },
+  { id: "au-10", timestamp: "2026-06-12T08:00:00Z", userId: "u-hod", userName: "Dr. Ravindra Mendis", role: "hod", action: "Results Published", details: "Published results for Mathematics for Computing (CS102)", ipAddress: "10.0.2.10" },
+  { id: "au-11", timestamp: "2026-06-10T14:00:00Z", userId: "u-pa", userName: "Nimal Fernando", role: "program-admin", action: "Program Approved", details: "Approved HND in IT for activation", ipAddress: "10.0.5.3" },
+  { id: "au-12", timestamp: "2026-06-08T09:00:00Z", userId: "u-reg", userName: "Sanduni Jayawardena", role: "registrar", action: "Application Rejected", details: "APP-2026-0006 rejected — entry requirement not met", ipAddress: "10.0.4.21" },
+  { id: "au-13", timestamp: "2026-06-05T11:00:00Z", userId: "u-lec2", userName: "Ms. Dilani Perera", role: "lecturer", action: "Assignment Created", details: "Created 'Personal Portfolio Site' (CS202)", ipAddress: "10.0.3.9" },
+  { id: "au-14", timestamp: "2026-06-03T10:00:00Z", userId: "u-hod", userName: "Dr. Ravindra Mendis", role: "hod", action: "Lecturer Assigned", details: "Assigned Dr. Priyanka Silva to CS201", ipAddress: "10.0.2.10" },
+  { id: "au-15", timestamp: "2026-06-01T09:00:00Z", userId: "u-sa", userName: "Amara Wickramasinghe", role: "super-admin", action: "Settings Updated", details: "Updated grading scheme thresholds", ipAddress: "10.0.1.2" },
+];
+
+export const AUDIT_ACTION_TYPES = [
+  "Account Created",
+  "Application Submitted",
+  "Application Status Changed",
+  "Payment Confirmed",
+  "Student Enrolled",
+  "Lecture Published",
+  "Lecture Returned",
+  "Quiz Submitted",
+  "Program Submitted",
+  "Program Approved",
+  "Results Published",
+  "Settings Updated",
+];
