@@ -43,6 +43,20 @@ export const assignments: Assignment[] = [
     status: "published",
     createdByLecturerId: "u-lec2",
   },
+  {
+    id: "ol-as-1",
+    moduleId: "ol-1",
+    title: "Low-Fidelity Wireframe Exercise",
+    description: "Sketch a low-fidelity wireframe for a simple mobile app screen and upload it as a PDF or image.",
+    maxMarks: 50,
+    submissionType: "both",
+    allowedFileTypes: [".pdf", ".png", ".jpg"],
+    maxFileSizeMb: 10,
+    openDate: "2026-06-01T09:00",
+    dueDate: "2026-12-20T23:59",
+    status: "published",
+    createdByLecturerId: "u-lec2",
+  },
 ];
 
 export const submissions: Submission[] = [

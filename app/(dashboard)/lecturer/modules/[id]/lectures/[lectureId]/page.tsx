@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Video, FileText, Presentation, BookOpen, File } from "lucide-react";
+import { ArrowLeft, Plus, Video, FileText, Presentation, BookOpen, File, ArrowUp, ArrowDown, Pencil } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -35,19 +37,36 @@ export default function LectureDetail() {
   const [method, setMethod] = useState("file");
   const [downloadable, setDownloadable] = useState(true);
   const [fileName, setFileName] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [submittedInfo, setSubmittedInfo] = useState(false);
 
   if (!lecture) return <div className="p-8">Lecture not found.</div>;
+  const editable = lecture.status === "draft";
 
   function submit() {
     updateLecture(lecture!.id, { status: "submitted", hodFeedback: undefined });
     addNotification({ recipientId: "u-hod", title: "Lecture submitted for verification", body: `${lecture!.title} is awaiting your review.`, type: "lecture", linkTo: "/hod/verification/lectures" });
     toast.success("Lecture submitted. HOD will be notified.");
+    setSubmittedInfo(true);
+  }
+  function saveInfo(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    updateLecture(lecture!.id, {
+      title: String(fd.get("title")),
+      order: Number(fd.get("order")),
+      lectureDate: String(fd.get("date")),
+      description: String(fd.get("desc")),
+    });
+    setEditOpen(false);
+    toast.success("Lecture updated");
   }
   function saveResource(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     addResource(lecture!.id, {
       title: String(fd.get("title")),
+      description: String(fd.get("rdesc")) || undefined,
       type: resType,
       url: method === "url" ? String(fd.get("url")) : "#",
       isDownloadable: downloadable,
@@ -56,13 +75,21 @@ export default function LectureDetail() {
     setResOpen(false); setFileName("");
     toast.success("Resource added");
   }
+  function moveResource(index: number, dir: -1 | 1) {
+    const next = [...lecture!.resources];
+    const target = index + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    updateLecture(lecture!.id, { resources: next });
+  }
 
   return (
     <div>
       <Button variant="ghost" size="sm" className="mb-2" onClick={() => router.push(`/lecturer/modules/${id}`)}><ArrowLeft className="size-4" /> Back to module</Button>
       <PageHeader title={lecture.title} description={`Lecture ${lecture.order} · ${formatDate(lecture.lectureDate)}`}>
         <StatusBadge status={lecture.status} />
-        {(lecture.status === "draft") && <Button onClick={submit}>Submit for Verification</Button>}
+        {editable && <Button variant="outline" onClick={() => setEditOpen(true)}><Pencil className="size-4" /> Edit Info</Button>}
+        {editable && <Button onClick={submit}>Submit for Verification</Button>}
       </PageHeader>
 
       {lecture.hodFeedback && (
@@ -82,12 +109,19 @@ export default function LectureDetail() {
               <Button size="sm" variant="outline" onClick={() => setResOpen(true)}><Plus className="size-4" /> Add Resource</Button>
             </div>
             <div className="space-y-2">
-              {lecture.resources.map((r) => {
+              {lecture.resources.map((r, i) => {
                 const Icon = resIcon[r.type];
                 return (
-                  <div key={r.id} className="flex items-center justify-between rounded-lg border p-2.5 text-sm">
-                    <span className="flex items-center gap-2"><Icon className="size-4 text-muted-foreground" /> {r.title} <Badge>{r.format}</Badge></span>
-                    <span className="text-xs text-muted-foreground">{r.isDownloadable ? "Downloadable" : "View only"}</span>
+                  <div key={r.id} className="flex items-start justify-between rounded-lg border p-2.5 text-sm gap-2">
+                    <div className="min-w-0">
+                      <span className="flex items-center gap-2"><Icon className="size-4 text-muted-foreground shrink-0" /> {r.title} <Badge>{r.format}</Badge></span>
+                      {r.description && <p className="text-xs text-muted-foreground mt-1">{r.description}</p>}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-xs text-muted-foreground mr-1">{r.isDownloadable ? "Downloadable" : "View only"}</span>
+                      <Button size="icon" variant="ghost" className="size-7" disabled={i === 0} onClick={() => moveResource(i, -1)}><ArrowUp className="size-3.5" /></Button>
+                      <Button size="icon" variant="ghost" className="size-7" disabled={i === lecture.resources.length - 1} onClick={() => moveResource(i, 1)}><ArrowDown className="size-3.5" /></Button>
+                    </div>
                   </div>
                 );
               })}
@@ -110,6 +144,7 @@ export default function LectureDetail() {
           <DialogHeader><DialogTitle>Add Resource</DialogTitle></DialogHeader>
           <form onSubmit={saveResource} className="space-y-3">
             <div className="space-y-1.5"><Label className="text-xs">Resource Title</Label><Input name="title" required /></div>
+            <div className="space-y-1.5"><Label className="text-xs">Description (optional)</Label><Input name="rdesc" placeholder="Short description shown to students" /></div>
             <div className="space-y-1.5"><Label className="text-xs">Type</Label>
               <Select value={resType} onValueChange={(v) => setResType(v as Resource["type"])}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -136,6 +171,28 @@ export default function LectureDetail() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Lecture Info</DialogTitle></DialogHeader>
+          <form onSubmit={saveInfo} className="space-y-3">
+            <div className="space-y-1.5"><Label className="text-xs">Lecture Title</Label><Input name="title" defaultValue={lecture.title} required /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5"><Label className="text-xs">Order</Label><Input name="order" type="number" defaultValue={lecture.order} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">Lecture Date</Label><Input name="date" type="date" defaultValue={lecture.lectureDate} /></div>
+            </div>
+            <div className="space-y-1.5"><Label className="text-xs">Description / Objectives</Label><Textarea name="desc" defaultValue={lecture.description} /></div>
+            <DialogFooter><Button type="submit">Save Changes</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <InfoDialog
+        open={submittedInfo}
+        onOpenChange={setSubmittedInfo}
+        title="Lecture submitted for verification"
+        description={<>Lecture submitted to the <strong>HOD</strong> for verification. It stays in <em>Pending Verification</em> and is <strong>not visible to students</strong> until the HOD approves it. If returned, you&apos;ll see their feedback here.</>}
+      />
     </div>
   );
 }

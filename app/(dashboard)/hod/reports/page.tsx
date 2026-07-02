@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { AlertTriangle, Download } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,9 +30,19 @@ export default function HODReports() {
     return g ? Math.round((g.assignmentMarks + g.quizMarks) / 2) : 0;
   };
 
+  const turnaround = (submittedAt?: string, verifiedAt?: string) => {
+    if (!submittedAt || !verifiedAt) return null;
+    const ms = new Date(verifiedAt).getTime() - new Date(submittedAt).getTime();
+    if (ms < 0) return null;
+    const days = ms / 86_400_000;
+    return days < 1 ? `${Math.round(days * 24)}h` : `${days.toFixed(1)}d`;
+  };
+
   return (
     <div>
-      <PageHeader title="Reports" description="Departmental teaching and performance insights." />
+      <PageHeader title="Reports" description="Departmental teaching and performance insights.">
+        <Button variant="outline" size="sm" onClick={() => toast.success("Report exported successfully")}><Download className="size-4" /> Export</Button>
+      </PageHeader>
       <Tabs defaultValue="lectures">
         <TabsList>
           <TabsTrigger value="lectures">Lecture Status</TabsTrigger>
@@ -98,15 +109,19 @@ export default function HODReports() {
 
         <TabsContent value="quizzes">
           <Card><CardContent className="pt-6"><Table>
-            <TableHeader><TableRow><TableHead>Quiz</TableHead><TableHead>Module</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Quiz</TableHead><TableHead>Module</TableHead><TableHead>Status</TableHead><TableHead>Turnaround</TableHead></TableRow></TableHeader>
             <TableBody>
-              {quizzes.map((q) => (
-                <TableRow key={q.id}>
-                  <TableCell>{q.title}</TableCell>
-                  <TableCell>{modules.find((m) => m.id === q.moduleId)?.code}</TableCell>
-                  <TableCell className="capitalize">{q.status}</TableCell>
-                </TableRow>
-              ))}
+              {quizzes.map((q) => {
+                const t = turnaround(q.submittedAt, q.verifiedAt);
+                return (
+                  <TableRow key={q.id}>
+                    <TableCell>{q.title}</TableCell>
+                    <TableCell>{modules.find((m) => m.id === q.moduleId)?.code}</TableCell>
+                    <TableCell className="capitalize">{q.status}</TableCell>
+                    <TableCell>{t ? <span className="text-emerald-700">{t}</span> : q.status === "submitted" ? <span className="text-amber-600">Pending</span> : "—"}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table></CardContent></Card>
         </TabsContent>

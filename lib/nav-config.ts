@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, BookMarked, Globe, Settings, ScrollText,
   UserCog, Calendar, BarChart3, Megaphone, ClipboardList, ArrowLeftRight,
   Receipt, Layers, CheckCircle, CheckSquare, ClipboardCheck, Award,
-  BookOpen, FileText, Search,
+  BookOpen, FileText, Search, MessageSquare,
 } from "lucide-react";
 import type { NavItem, Role } from "@/lib/types";
 
@@ -12,16 +12,22 @@ export const navConfig: Record<Role, NavItem[]> = {
     { label: "User Management", icon: Users, href: "/super-admin/users" },
     { label: "Programs", icon: BookMarked, href: "/super-admin/programs" },
     { label: "Open Learning", icon: Globe, href: "/super-admin/open-learning" },
+    { label: "Reports", icon: BarChart3, href: "/super-admin/reports" },
+    { label: "Announcements", icon: Megaphone, href: "/super-admin/announcements" },
     { label: "Settings", icon: Settings, href: "/super-admin/settings" },
     { label: "Audit Log", icon: ScrollText, href: "/super-admin/audit-log" },
   ],
   "program-admin": [
     { label: "Dashboard", icon: LayoutDashboard, href: "/program-admin/dashboard" },
     { label: "Programs", icon: BookMarked, href: "/program-admin/programs" },
+    { label: "Modules", icon: Layers, href: "/program-admin/modules" },
+    { label: "Student Results", icon: ClipboardCheck, href: "/program-admin/results" },
     { label: "HOD Accounts", icon: UserCog, href: "/program-admin/hods" },
+    { label: "Open Learning", icon: Globe, href: "/program-admin/open-learning" },
     { label: "Academic Calendar", icon: Calendar, href: "/program-admin/calendar" },
     { label: "Reports", icon: BarChart3, href: "/program-admin/reports" },
     { label: "Announcements", icon: Megaphone, href: "/program-admin/announcements" },
+    { label: "Escalations", icon: MessageSquare, href: "/program-admin/escalations" },
   ],
   registrar: [
     { label: "Dashboard", icon: LayoutDashboard, href: "/registrar/dashboard" },
@@ -29,6 +35,7 @@ export const navConfig: Record<Role, NavItem[]> = {
     { label: "Students", icon: Users, href: "/registrar/students" },
     { label: "Cross-Enrollment", icon: ArrowLeftRight, href: "/registrar/cross-enrollment" },
     { label: "Payment Log", icon: Receipt, href: "/registrar/payments" },
+    { label: "Reports", icon: BarChart3, href: "/registrar/reports" },
   ],
   hod: [
     { label: "Dashboard", icon: LayoutDashboard, href: "/hod/dashboard" },
@@ -41,11 +48,16 @@ export const navConfig: Record<Role, NavItem[]> = {
     { label: "Gradebook", icon: ClipboardCheck, href: "/hod/gradebook" },
     { label: "Results", icon: Award, href: "/hod/results" },
     { label: "Reports", icon: BarChart3, href: "/hod/reports" },
+    { label: "Announcements", icon: Megaphone, href: "/hod/announcements" },
     { label: "Open Learning", icon: Globe, href: "/hod/open-learning" },
   ],
   lecturer: [
     { label: "Dashboard", icon: LayoutDashboard, href: "/lecturer/dashboard" },
     { label: "My Modules", icon: Layers, href: "/lecturer/modules" },
+    { label: "Open Learning", icon: Globe, href: "/lecturer/open-learning" },
+    { label: "Messages", icon: MessageSquare, href: "/lecturer/messages" },
+    { label: "Exam Calendar", icon: Calendar, href: "/lecturer/calendar" },
+    { label: "Reports", icon: BarChart3, href: "/lecturer/reports" },
   ],
   "cohort-student": [
     { label: "Dashboard", icon: LayoutDashboard, href: "/cohort-student/dashboard" },

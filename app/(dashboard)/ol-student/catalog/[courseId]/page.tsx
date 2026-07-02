@@ -14,6 +14,7 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { useStore } from "@/lib/store/provider";
 
 export default function OLCourseDetail() {
@@ -22,6 +23,8 @@ export default function OLCourseDetail() {
   const { currentUser, olCourses, olEnrollments, users, enrollOL, addCrossEnrollment } = useStore();
   const course = olCourses.find((c) => c.id === courseId);
   const [payOpen, setPayOpen] = useState(false);
+  const [freeInfo, setFreeInfo] = useState(false);
+  const [paidInfo, setPaidInfo] = useState(false);
 
   if (!course) return <div className="p-8">Course not found.</div>;
   const enrolled = olEnrollments.some((e) => e.studentId === currentUser?.id && e.courseId === course.id);
@@ -31,13 +34,13 @@ export default function OLCourseDetail() {
     if (course!.pricing === "free") {
       enrollOL(currentUser!.id, course!.id);
       toast.success("Enrolled! Happy learning.");
-      router.push(`/ol-student/courses/${course!.id}`);
+      setFreeInfo(true);
     } else setPayOpen(true);
   }
   function requestPaid() {
     addCrossEnrollment({ studentId: currentUser!.id, studentName: currentUser!.name, type: "cohort-to-ol", targetCourseId: course!.id, reason: "Paid OL enrollment" });
-    toast.success("Request sent. The Registrar will contact you shortly.");
     setPayOpen(false);
+    setPaidInfo(true);
   }
 
   return (
@@ -102,6 +105,21 @@ export default function OLCourseDetail() {
           <DialogFooter><Button variant="ghost" onClick={() => setPayOpen(false)}>Cancel</Button><Button onClick={requestPaid}>Confirm</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <InfoDialog
+        open={freeInfo}
+        onOpenChange={(o) => { setFreeInfo(o); if (!o) router.push(`/ol-student/courses/${course.id}`); }}
+        title="You're enrolled — it's free"
+        description={<>Free Open Learning courses grant <strong>instant access</strong> — no payment or approval needed. Work through the lessons in order, attempt quizzes and assignments, and once you finish you&apos;ll earn a <strong>certificate of completion</strong>. Let&apos;s go to your course.</>}
+        actionLabel="Start Learning"
+      />
+
+      <InfoDialog
+        open={paidInfo}
+        onOpenChange={setPaidInfo}
+        title="Request sent to the Registrar"
+        description={<>Paid courses need a payment step. Your request for <strong>{course.title}</strong> (LKR {course.price?.toLocaleString()}) has been sent to the <strong>Registrar</strong>, who will share payment details. Once payment is confirmed, the course appears under <strong>My Courses</strong> and you can begin.</>}
+      />
     </div>
   );
 }

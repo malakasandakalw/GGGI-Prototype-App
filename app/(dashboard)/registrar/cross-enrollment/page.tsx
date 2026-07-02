@@ -18,6 +18,7 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { useStore } from "@/lib/store/provider";
 import { formatDate } from "@/lib/utils/date";
 import type { CrossEnrollmentRequest } from "@/lib/types";
@@ -33,6 +34,8 @@ export default function RegistrarCrossEnrollment() {
   const [process, setProcess] = useState<CrossEnrollmentRequest | null>(null);
   const [payment, setPayment] = useState("pending");
   const [notes, setNotes] = useState("");
+  const [approvedInfo, setApprovedInfo] = useState<string | null>(null);
+  const [declinedInfo, setDeclinedInfo] = useState(false);
 
   const target = (c: CrossEnrollmentRequest) =>
     c.targetModuleId ? modules.find((m) => m.id === c.targetModuleId)?.name : olCourses.find((o) => o.id === c.targetCourseId)?.title;
@@ -45,12 +48,14 @@ export default function RegistrarCrossEnrollment() {
       if (m?.primaryLecturerId) addNotification({ recipientId: m.primaryLecturerId, title: "New cross-enrolled student", body: `${process.studentName} was granted access to ${m.name}.`, type: "enrollment" });
     }
     toast.success("Enrollment approved. Student and Lecturer notified (simulated).");
+    setApprovedInfo(target(process) ?? "the module");
     setProcess(null); setNotes("");
   }
   function decline() {
     if (!process) return;
     updateCrossEnrollment(process.id, { status: "rejected", registrarNotes: notes });
     toast.error("Request declined. Student notified.");
+    setDeclinedInfo(true);
     setProcess(null); setNotes("");
   }
 
@@ -119,6 +124,19 @@ export default function RegistrarCrossEnrollment() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <InfoDialog
+        open={!!approvedInfo}
+        onOpenChange={(o) => !o && setApprovedInfo(null)}
+        title="Cross-enrollment approved"
+        description={<>Enrollment approved. The student is granted access to <strong>{approvedInfo}</strong> only, the module&apos;s <strong>Lecturer has been notified</strong>, and the module now appears on the student&apos;s dashboard.</>}
+      />
+      <InfoDialog
+        open={declinedInfo}
+        onOpenChange={setDeclinedInfo}
+        title="Request declined"
+        description={<>Request declined. The student has been notified and can submit a new request if needed.</>}
+      />
     </div>
   );
 }

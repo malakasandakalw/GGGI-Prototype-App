@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -20,11 +21,19 @@ import { useStore } from "@/lib/store/provider";
 import type { Program } from "@/lib/types";
 
 export default function SuperAdminPrograms() {
-  const { programs, modules, users, updateProgram } = useStore();
+  const { programs, modules, users, updateProgram, addAudit } = useStore();
   const [status, setStatus] = useState("all");
   const [level, setLevel] = useState("all");
   const [view, setView] = useState<Program | null>(null);
   const [archive, setArchive] = useState<Program | null>(null);
+  const [activatedInfo, setActivatedInfo] = useState<string | null>(null);
+
+  function activate(p: Program) {
+    updateProgram(p.id, { status: "active" });
+    addAudit({ action: "Program Activated", details: `Activated ${p.name}` });
+    toast.success(`${p.name} activated`);
+    setActivatedInfo(p.name);
+  }
 
   const hodName = (id: string) => users.find((u) => u.id === id)?.name ?? "—";
 
@@ -46,7 +55,7 @@ export default function SuperAdminPrograms() {
       render: (p) => (
         <div className="flex justify-end gap-2">
           {(p.status === "submitted" || p.status === "approved") && (
-            <Button size="sm" onClick={() => { updateProgram(p.id, { status: "active" }); toast.success(`${p.name} activated`); }}>
+            <Button size="sm" onClick={() => activate(p)}>
               Activate
             </Button>
           )}
@@ -148,6 +157,13 @@ export default function SuperAdminPrograms() {
           if (archive) { updateProgram(archive.id, { status: "archived" }); toast.success("Program archived"); }
           setArchive(null);
         }}
+      />
+
+      <InfoDialog
+        open={!!activatedInfo}
+        onOpenChange={(o) => !o && setActivatedInfo(null)}
+        title="Program activated"
+        description={<><strong>{activatedInfo}</strong> is now Active. The <strong>Program Admin / Registrar</strong> can open an application intake, after which it appears on the public application portal for prospective students.</>}
       />
     </div>
   );

@@ -13,6 +13,8 @@ export const eventColors: Record<string, string> = {
   holiday: "bg-slate-100 text-slate-700 border-slate-200",
   application: "bg-emerald-100 text-emerald-800 border-emerald-200",
   quiz: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  "mid-semester": "bg-purple-100 text-purple-800 border-purple-200",
+  "results-publication": "bg-teal-100 text-teal-800 border-teal-200",
 };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ export default function HODResults() {
   const myModules = modules.filter((m) => m.status === "active" && programs.find((p) => p.id === m.programId)?.department === currentUser?.department);
   const [confirm, setConfirm] = useState<Module | null>(null);
   const [review, setReview] = useState<Module | null>(null);
+  const [published, setPublished] = useState<string | null>(null);
 
   function statusOf(m: Module) {
     const gs = moduleGrades.filter((g) => g.moduleId === m.id);
@@ -113,7 +115,14 @@ export default function HODResults() {
         title="Publish results?"
         description="Once published, all students will be notified and can view their grades. This cannot be undone."
         confirmLabel="Publish"
-        onConfirm={() => { if (confirm) { publishResults(confirm.id); toast.success("Results published. Students notified."); } setConfirm(null); }}
+        onConfirm={() => { if (confirm) { publishResults(confirm.id); toast.success("Results published. Students notified."); setPublished(`${confirm.code} — ${confirm.name}`); } setConfirm(null); }}
+      />
+
+      <InfoDialog
+        open={!!published}
+        onOpenChange={(o) => !o && setPublished(null)}
+        title="Results published"
+        description={<>Results published for <strong>{published}</strong>. All <strong>students</strong> in the module have been notified and can now view their grades, updated GPA and transcript.</>}
       />
     </div>
   );

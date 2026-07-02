@@ -58,15 +58,22 @@ export default function LoginPage() {
                 <Button variant="outline" size="sm" onClick={() => go(c.role)}>
                   Log in as {c.title}
                 </Button>
+                {c.role === "ol-student" && (
+                  <Button asChild variant="ghost" size="sm" className="text-emerald-700">
+                    <Link href="/register">Or sign up free →</Link>
+                  </Button>
+                )}
               </Card>
             );
           })}
         </div>
-        <div className="mt-6 text-sm text-muted-foreground">
-          Prospective student?{" "}
-          <Link href="/apply" className="text-primary font-medium hover:underline">
-            Apply for admission →
-          </Link>
+        <div className="mt-6 text-sm text-muted-foreground flex flex-wrap gap-x-6 gap-y-1">
+          <span>Prospective student?{" "}
+            <Link href="/apply" className="text-primary font-medium hover:underline">Apply for admission →</Link>
+          </span>
+          <span>New to Open Learning?{" "}
+            <Link href="/register" className="text-emerald-700 font-medium hover:underline">Sign up free →</Link>
+          </span>
         </div>
       </div>
     </div>

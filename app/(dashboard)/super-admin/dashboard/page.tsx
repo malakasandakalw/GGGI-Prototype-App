@@ -52,6 +52,8 @@ export default function SuperAdminDashboard() {
           <CardContent className="flex flex-col gap-2">
             <Button asChild variant="outline" className="justify-start"><Link href="/super-admin/users">Create Program Admin Account</Link></Button>
             <Button asChild variant="outline" className="justify-start"><Link href="/super-admin/programs">Activate Pending Program</Link></Button>
+            <Button asChild variant="outline" className="justify-start"><Link href="/super-admin/reports">View Reports</Link></Button>
+            <Button asChild variant="outline" className="justify-start"><Link href="/super-admin/announcements">Post Announcement</Link></Button>
             <Button asChild variant="outline" className="justify-start"><Link href="/super-admin/audit-log">View Audit Log</Link></Button>
             <Button asChild variant="outline" className="justify-start"><Link href="/super-admin/settings">System Settings</Link></Button>
           </CardContent>

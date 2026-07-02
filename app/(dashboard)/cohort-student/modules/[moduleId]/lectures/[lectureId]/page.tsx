@@ -20,9 +20,10 @@ const resIcon: Record<Resource["type"], typeof Video> = { video: Video, slides: 
 export default function CohortLectureView() {
   const { moduleId, lectureId } = useParams<{ moduleId: string; lectureId: string }>();
   const router = useRouter();
-  const { currentUser, lectures, markLectureComplete } = useStore();
+  const { currentUser, modules, lectures, markLectureComplete } = useStore();
   const moduleLectures = lectures.filter((l) => l.moduleId === moduleId && l.status === "published").sort((a, b) => a.order - b.order);
   const lecture = lectures.find((l) => l.id === lectureId);
+  const mod = modules.find((m) => m.id === moduleId);
   const [video, setVideo] = useState(false);
 
   if (!lecture) return <div className="p-8">Lecture not found.</div>;
@@ -30,6 +31,24 @@ export default function CohortLectureView() {
   const prev = moduleLectures[idx - 1];
   const next = moduleLectures[idx + 1];
   const done = currentUser?.completedLectureIds?.includes(lecture.id);
+  // Sequential access: block this lecture until the previous one is complete (SRS §4.6).
+  const locked = !!mod?.sequentialLectures && idx > 0 && !currentUser?.completedLectureIds?.includes(prev?.id ?? "");
+  const nextLocked = !!mod?.sequentialLectures && !done;
+
+  if (locked) {
+    return (
+      <div>
+        <Button variant="ghost" size="sm" className="mb-2" onClick={() => router.push(`/cohort-student/modules/${moduleId}`)}><ArrowLeft className="size-4" /> Back to module</Button>
+        <PageHeader title={lecture.title} description={`Lecture ${idx + 1} of ${moduleLectures.length}`} />
+        <Card className="max-w-lg"><CardContent className="pt-6 flex flex-col items-center text-center gap-2 py-10">
+          <Lock className="size-8 text-muted-foreground" />
+          <p className="font-medium">This lecture is locked</p>
+          <p className="text-sm text-muted-foreground">Complete the previous lecture first — this module uses sequential access.</p>
+          {prev && <Button variant="outline" onClick={() => router.push(`/cohort-student/modules/${moduleId}/lectures/${prev.id}`)}>Go to previous lecture</Button>}
+        </CardContent></Card>
+      </div>
+    );
+  }
 
   function access(r: Resource) {
     if (currentUser) markLectureComplete(currentUser.id, lecture!.id);
@@ -70,7 +89,7 @@ export default function CohortLectureView() {
           <Card><CardContent className="pt-6 space-y-2">
             <p className="text-sm font-medium">Navigation</p>
             <Button variant="outline" className="w-full" disabled={!prev} onClick={() => prev && router.push(`/cohort-student/modules/${moduleId}/lectures/${prev.id}`)}>← Previous Lecture</Button>
-            <Button variant="outline" className="w-full" disabled={!next} onClick={() => next && router.push(`/cohort-student/modules/${moduleId}/lectures/${next.id}`)}>Next Lecture →</Button>
+            <Button variant="outline" className="w-full" disabled={!next || nextLocked} onClick={() => next && router.push(`/cohort-student/modules/${moduleId}/lectures/${next.id}`)}>{nextLocked && next ? "Next locked — complete this lecture" : "Next Lecture →"}</Button>
           </CardContent></Card>
           <Card><CardContent className="pt-6 text-sm"><p className="text-muted-foreground">Status</p><p className="font-medium mt-1">{done ? "Completed" : "Not yet completed — open a resource to mark complete."}</p></CardContent></Card>
         </div>

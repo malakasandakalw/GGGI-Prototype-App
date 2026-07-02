@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useStore } from "@/lib/store/provider";
 import { gpa } from "@/lib/utils/gpa";
+import { moduleProgress } from "@/lib/utils/progress";
 import { formatDate, daysUntil } from "@/lib/utils/date";
 
 export default function CohortDashboard() {
-  const { currentUser, programs, modules, lectures, assignments, submissions, quizzes, moduleGrades, calendarEvents, notifications } = useStore();
+  const { currentUser, programs, modules, lectures, assignments, submissions, quizzes, quizSubmissions, moduleGrades, calendarEvents, notifications } = useStore();
   const program = programs.find((p) => p.id === currentUser?.programId);
   const sem = program?.semesters.find((s) => s.id === currentUser?.currentSemesterId);
   const myModules = modules.filter((m) => sem?.moduleIds.includes(m.id) || currentUser?.crossEnrolledModuleIds?.includes(m.id));
@@ -52,15 +53,18 @@ export default function CohortDashboard() {
           <h3 className="font-semibold mb-3">Active Modules</h3>
           <div className="grid sm:grid-cols-2 gap-3">
             {myModules.map((m) => {
-              const ls = lectures.filter((l) => l.moduleId === m.id && l.status === "published");
               const nextDl = deadlines.find((d) => d.moduleId === m.id);
+              const prog = moduleProgress(m.id, currentUser?.id ?? "", {
+                lectures, assignments, quizzes, completedLectureIds: currentUser?.completedLectureIds ?? [], submissions, quizSubmissions,
+              });
               return (
                 <Card key={m.id}><CardContent className="pt-6 space-y-2">
                   <div className="flex items-start justify-between">
                     <div><p className="font-medium">{m.name}</p><p className="text-xs text-muted-foreground">{m.code}</p></div>
                     {currentUser?.crossEnrolledModuleIds?.includes(m.id) && <Badge variant="secondary" className="text-[10px]">Cross-Program</Badge>}
                   </div>
-                  <Progress value={ls.length ? 40 : 0} />
+                  <Progress value={prog.percent} />
+                  <p className="text-xs text-muted-foreground">{prog.percent}% complete</p>
                   {nextDl && <p className="text-xs text-amber-600">Due in {daysUntil(nextDl.date)} days: {nextDl.title}</p>}
                   <Button asChild size="sm" className="w-full"><Link href={`/cohort-student/modules/${m.id}`}>Continue</Link></Button>
                 </CardContent></Card>

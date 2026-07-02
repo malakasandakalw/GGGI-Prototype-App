@@ -18,6 +18,9 @@ import { formatDate } from "@/lib/utils/date";
 import type { Application, ApplicationStatus } from "@/lib/types";
 
 const STATUSES: ApplicationStatus[] = ["submitted", "under-review", "payment-pending", "payment-confirmed", "enrolled", "rejected", "waitlisted"];
+// Quick-status is limited to safe transitions; payment-confirmed / enrolled must go
+// through the application detail (payment gate + account creation, SRS §5.1.3).
+const QUICK_STATUSES: ApplicationStatus[] = ["under-review", "payment-pending", "waitlisted", "rejected"];
 
 export default function ApplicationsPage() {
   const router = useRouter();
@@ -47,7 +50,7 @@ export default function ApplicationsPage() {
             <DropdownMenuItem onClick={() => router.push(`/registrar/applications/${a.id}`)}>View Application</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs">Quick status</DropdownMenuLabel>
-            {STATUSES.map((s) => (
+            {QUICK_STATUSES.map((s) => (
               <DropdownMenuItem key={s} onClick={() => updateApplication(a.id, { status: s })}>
                 <StatusBadge status={s} />
               </DropdownMenuItem>

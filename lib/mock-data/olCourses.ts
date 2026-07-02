@@ -74,6 +74,7 @@ export const olCourses: OLCourse[] = [
             title: "Low-fidelity Wireframes",
             order: 1,
             isSequential: true,
+            assignmentId: "ol-as-1",
             resources: [
               { id: "olr-4", lectureId: "ol1-l3", title: "Wireframing demo", type: "video", url: "#", isDownloadable: false, format: "MP4" },
             ],

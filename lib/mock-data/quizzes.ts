@@ -134,6 +134,40 @@ export const quizzes: Quiz[] = [
       },
     ],
   },
+  {
+    id: "ol-qz-1",
+    moduleId: "ol-1",
+    title: "Prototyping Knowledge Check",
+    instructions: "A short check on interactive prototyping concepts.",
+    totalMarks: 6,
+    timeLimitMinutes: 10,
+    availableFrom: "2026-06-01T09:00",
+    availableTo: "2026-12-31T23:59",
+    allowedAttempts: 2,
+    randomiseOrder: false,
+    showAnswersAfter: true,
+    status: "active",
+    createdByLecturerId: "u-lec2",
+    verifiedAt: "2026-05-30T10:00:00Z",
+    questions: [
+      {
+        id: "olq1",
+        type: "mcq-single",
+        text: "What is the main purpose of an interactive prototype?",
+        options: ["Final production code", "Testing user flows before build", "Server configuration", "Database design"],
+        correctAnswer: "Testing user flows before build",
+        marks: 3,
+        explanation: "Prototypes validate flows cheaply before development.",
+      },
+      {
+        id: "olq2",
+        type: "true-false",
+        text: "Low-fidelity wireframes should include final colours and fonts.",
+        correctAnswer: "False",
+        marks: 3,
+      },
+    ],
+  },
 ];
 
 export const quizSubmissions: QuizSubmission[] = [

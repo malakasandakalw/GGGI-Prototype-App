@@ -5,8 +5,12 @@ import { toast } from "sonner";
 import { Video, FileText, Presentation, BookOpen, File } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useStore } from "@/lib/store/provider";
@@ -23,24 +27,39 @@ export default function LectureVerification() {
   const queue = lectures.filter((l) => l.status === "submitted");
   const [selectedId, setSelectedId] = useState<string | null>(queue[0]?.id ?? null);
   const [feedback, setFeedback] = useState("");
+  const [schedule, setSchedule] = useState(false);
+  const [publishDate, setPublishDate] = useState("");
+  const [info, setInfo] = useState<{ title: string; description: React.ReactNode } | null>(null);
   const selected = lectures.find((l) => l.id === selectedId && l.status === "submitted");
 
   const moduleName = (id: string) => modules.find((m) => m.id === id)?.name ?? "";
   const lecturerName = (id: string) => users.find((u) => u.id === id)?.name ?? "";
 
+  function resetForm() { setSelectedId(null); setFeedback(""); setSchedule(false); setPublishDate(""); }
+
   function publish() {
     if (!selected) return;
-    updateLecture(selected.id, { status: "published" });
-    addNotification({ recipientId: selected.createdByLecturerId, title: "Lecture approved", body: `${selected.title} was approved and published.`, type: "lecture" });
-    toast.success("Lecture published. Students notified (simulated).");
-    setSelectedId(null); setFeedback("");
+    if (schedule && publishDate) {
+      updateLecture(selected.id, { status: "verified", scheduledPublishDate: publishDate });
+      addNotification({ recipientId: selected.createdByLecturerId, title: "Lecture scheduled", body: `${selected.title} was approved and scheduled for ${publishDate}.`, type: "lecture" });
+      toast.success(`Lecture scheduled for ${publishDate}.`);
+      setInfo({ title: "Lecture scheduled", description: <><strong>{selected.title}</strong> is approved and will automatically become visible to <strong>students</strong> on <strong>{publishDate}</strong>. Until then it stays hidden.</> });
+    } else {
+      updateLecture(selected.id, { status: "published" });
+      addNotification({ recipientId: selected.createdByLecturerId, title: "Lecture approved", body: `${selected.title} was approved and published.`, type: "lecture" });
+      toast.success("Lecture published. Students notified (simulated).");
+      setInfo({ title: "Lecture published", description: <>Lecture published. The <strong>students</strong> enrolled in this module have been notified and can now access it and its resources.</> });
+    }
+    resetForm();
   }
   function returnLec() {
     if (!selected) return;
+    const lec = lecturerName(selected.createdByLecturerId);
     updateLecture(selected.id, { status: "draft", hodFeedback: feedback });
     addNotification({ recipientId: selected.createdByLecturerId, title: "Lecture returned", body: `${selected.title} was returned with feedback.`, type: "lecture" });
-    toast.success(`Lecture returned to ${lecturerName(selected.createdByLecturerId)}.`);
-    setSelectedId(null); setFeedback("");
+    toast.success(`Lecture returned to ${lec}.`);
+    setInfo({ title: "Lecture returned", description: <>Lecture returned to <strong>{lec}</strong> with your feedback. It goes back to <em>Draft</em> for them to revise and resubmit for verification.</> });
+    resetForm();
   }
 
   if (queue.length === 0) {
@@ -63,7 +82,7 @@ export default function LectureVerification() {
           {queue.map((l) => (
             <button
               key={l.id}
-              onClick={() => { setSelectedId(l.id); setFeedback(""); }}
+              onClick={() => { setSelectedId(l.id); setFeedback(""); setSchedule(false); setPublishDate(""); }}
               className={cn("w-full text-left rounded-lg border p-3 transition-colors hover:bg-muted", selectedId === l.id && "border-primary bg-primary/5")}
             >
               <p className="font-medium text-sm">{l.title}</p>
@@ -98,10 +117,17 @@ export default function LectureVerification() {
                 </div>
                 {lecAssignment && <Alert><AlertDescription className="text-sm">Attached assignment: <b>{lecAssignment.title}</b> · Due {formatDate(lecAssignment.dueDate)} · {lecAssignment.maxMarks} marks</AlertDescription></Alert>}
                 {lecQuiz && <Alert><AlertDescription className="text-sm">Attached quiz: <b>{lecQuiz.title}</b> · {lecQuiz.questions.length} questions · {lecQuiz.totalMarks} marks</AlertDescription></Alert>}
-                <div className="space-y-2 pt-2 border-t">
+                <div className="space-y-3 pt-2 border-t">
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox checked={schedule} onCheckedChange={(v) => setSchedule(!!v)} />
+                    Schedule for a future visibility date
+                  </label>
+                  {schedule && (
+                    <div className="space-y-1.5"><Label className="text-xs">Publish on</Label><Input type="date" value={publishDate} onChange={(e) => setPublishDate(e.target.value)} /></div>
+                  )}
                   <Textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Return with feedback (optional)..." />
                   <div className="flex gap-2">
-                    <Button className="flex-1" onClick={publish}>Approve &amp; Publish</Button>
+                    <Button className="flex-1" disabled={schedule && !publishDate} onClick={publish}>{schedule ? "Approve & Schedule" : "Approve & Publish"}</Button>
                     <Button variant="outline" className="flex-1" disabled={!feedback.trim()} onClick={returnLec}>Return to Lecturer</Button>
                   </div>
                 </div>
@@ -112,6 +138,8 @@ export default function LectureVerification() {
           </CardContent>
         </Card>
       </div>
+
+      <InfoDialog open={!!info} onOpenChange={(o) => !o && setInfo(null)} title={info?.title ?? ""} description={info?.description} />
     </div>
   );
 }

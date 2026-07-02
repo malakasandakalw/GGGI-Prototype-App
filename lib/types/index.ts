@@ -99,6 +99,8 @@ export interface Module {
   status: ModuleStatus;
   isShared: boolean;
   isCrossStreamEnabled: boolean;
+  /** When true, lectures must be completed in order (SRS §4.6 sequential access). */
+  sequentialLectures?: boolean;
 }
 
 // Lectures
@@ -108,6 +110,7 @@ export interface Resource {
   id: string;
   lectureId: string;
   title: string;
+  description?: string;
   type: "video" | "slides" | "notes" | "reading" | "file";
   url: string;
   isDownloadable: boolean;
@@ -160,6 +163,7 @@ export interface Application {
   status: ApplicationStatus;
   submittedAt: string;
   registrarNotes: string;
+  rejectionReason?: string;
   paymentReference?: string;
   paymentConfirmedAt?: string;
   history: ApplicationStatusEvent[];
@@ -230,6 +234,8 @@ export interface Assignment {
   maxMarks: number;
   submissionType: "file" | "text" | "both";
   allowedFileTypes: string[];
+  maxFileSizeMb?: number;
+  latePolicy?: string;
   openDate: string;
   dueDate: string;
   status: AssignmentStatus;
@@ -373,7 +379,9 @@ export type CalendarEventType =
   | "deadline"
   | "holiday"
   | "application"
-  | "quiz";
+  | "quiz"
+  | "mid-semester"
+  | "results-publication";
 
 export interface CalendarEvent {
   id: string;

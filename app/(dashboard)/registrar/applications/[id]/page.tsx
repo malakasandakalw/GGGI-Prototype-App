@@ -18,8 +18,9 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { useStore } from "@/lib/store/provider";
-import { formatDate, formatDateTime } from "@/lib/utils/date";
+import { formatDateTime } from "@/lib/utils/date";
 import type { ApplicationStatus } from "@/lib/types";
 
 const NEXT_STATUSES: ApplicationStatus[] = ["under-review", "payment-pending", "payment-confirmed", "enrolled", "rejected", "waitlisted"];
@@ -33,8 +34,12 @@ export default function ApplicationDetail() {
   const [status, setStatus] = useState<ApplicationStatus | "">("");
   const [notes, setNotes] = useState(app?.registrarNotes ?? "");
   const [payRef, setPayRef] = useState(app?.paymentReference ?? "");
+  const [rejectReason, setRejectReason] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [intakeId, setIntakeId] = useState("");
+  const [payPendingInfo, setPayPendingInfo] = useState(false);
+  const [payConfirmedInfo, setPayConfirmedInfo] = useState(false);
+  const [enrolledInfo, setEnrolledInfo] = useState<{ intake: string } | null>(null);
 
   if (!app) return <div className="p-8">Application not found.</div>;
   const program = programs.find((p) => p.id === app.programId);
@@ -42,10 +47,21 @@ export default function ApplicationDetail() {
 
   function applyStatus() {
     if (!status) return;
-    updateApplication(app!.id, { status, paymentReference: payRef || app!.paymentReference, paymentConfirmedAt: status === "payment-confirmed" ? new Date().toISOString() : app!.paymentConfirmedAt });
-    addNotification({ recipientId: "u-reg", title: "Application updated", body: `${app!.applicantName} → ${status}`, type: "application" });
-    toast.success(`Status updated to ${status.replace("-", " ")}`);
-    setStatus("");
+    updateApplication(
+      app!.id,
+      {
+        status,
+        rejectionReason: status === "rejected" ? rejectReason : app!.rejectionReason,
+        paymentReference: payRef || app!.paymentReference,
+        paymentConfirmedAt: status === "payment-confirmed" ? new Date().toISOString() : app!.paymentConfirmedAt,
+      },
+      status === "rejected" && rejectReason ? `Rejected: ${rejectReason}` : undefined,
+    );
+    // SRS §8.1 — the applicant is emailed on every status change (simulated).
+    toast.success(`Status updated to ${status.replace("-", " ")} — applicant emailed (simulated)`);
+    if (status === "payment-pending") setPayPendingInfo(true);
+    if (status === "payment-confirmed") setPayConfirmedInfo(true);
+    setStatus(""); setRejectReason("");
   }
 
   function createStudent(e: React.FormEvent<HTMLFormElement>) {
@@ -64,6 +80,7 @@ export default function ApplicationDetail() {
     addNotification({ recipientId: u.id, title: "Welcome to the University", body: "Your student account has been created.", type: "system" });
     setCreateOpen(false);
     toast.success("Student account created. Welcome email sent (simulated).");
+    setEnrolledInfo({ intake: intakes.find((i) => i.id === intakeId)?.label ?? "the selected intake" });
   }
 
   return (
@@ -123,13 +140,22 @@ export default function ApplicationDetail() {
               {status === "payment-pending" && (
                 <Alert><AlertDescription className="text-xs">Please contact the applicant externally to arrange payment.</AlertDescription></Alert>
               )}
+              {status === "rejected" && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Rejection Reason</Label>
+                  <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} placeholder="Reason shared with the applicant (recorded on the application)..." />
+                </div>
+              )}
               {(status === "payment-pending" || status === "payment-confirmed" || ["payment-pending", "payment-confirmed", "enrolled"].includes(app.status)) && (
                 <div className="space-y-1.5">
                   <Label className="text-xs">Payment Reference</Label>
                   <Input value={payRef} onChange={(e) => setPayRef(e.target.value)} placeholder="e.g. BT-558831" />
                 </div>
               )}
-              <Button className="w-full" disabled={!status} onClick={applyStatus}>Update Status</Button>
+              {app.rejectionReason && (
+                <Alert className="bg-red-50 border-red-200"><AlertDescription className="text-xs"><span className="font-medium">Rejection reason: </span>{app.rejectionReason}</AlertDescription></Alert>
+              )}
+              <Button className="w-full" disabled={!status || (status === "rejected" && !rejectReason.trim())} onClick={applyStatus}>Update Status</Button>
               {app.status === "payment-confirmed" && (
                 <Button variant="outline" className="w-full" onClick={() => setCreateOpen(true)}>Create Student Account</Button>
               )}
@@ -188,6 +214,27 @@ export default function ApplicationDetail() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <InfoDialog
+        open={payPendingInfo}
+        onOpenChange={setPayPendingInfo}
+        title="Marked Payment Pending"
+        description={<>The applicant has been notified that you&apos;ll contact them with payment details. Payment is handled <strong>offline</strong> — log the details in Registrar Notes, then mark <em>Payment Confirmed</em> once received.</>}
+      />
+      <InfoDialog
+        open={payConfirmedInfo}
+        onOpenChange={setPayConfirmedInfo}
+        title="Payment confirmed"
+        description={<>Payment confirmed. You can now <strong>Create the Student Account</strong> — this enrolls the student and sends their welcome email.</>}
+        actionLabel="Got it"
+      />
+      <InfoDialog
+        open={!!enrolledInfo}
+        onOpenChange={(o) => { if (!o) { setEnrolledInfo(null); router.push("/registrar/students"); } }}
+        title="Student account created & enrolled"
+        description={<>Student account created and enrolled in <strong>{program?.name}</strong> ({enrolledInfo?.intake}). A welcome email with the student ID and temporary password has been sent (simulated). The student can now log in; their <strong>Lecturers and HOD</strong> will see them in their module class lists.</>}
+        actionLabel="Go to Student Register"
+      />
     </div>
   );
 }

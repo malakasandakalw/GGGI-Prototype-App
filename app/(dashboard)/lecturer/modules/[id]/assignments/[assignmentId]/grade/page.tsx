@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ export default function GradeAssignment() {
   const [selectedId, setSelectedId] = useState<string>(enrolled[0]?.id ?? "");
   const [marks, setMarks] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [gradedInfo, setGradedInfo] = useState(false);
 
   const subFor = (sid: string) => submissions.find((s) => s.assignmentId === assignmentId && s.studentId === sid);
   const graded = enrolled.filter((s) => subFor(s.id)?.gradingStatus === "graded");
@@ -56,6 +58,7 @@ export default function GradeAssignment() {
     if (finalise) {
       addNotification({ recipientId: selectedId, title: "Assignment graded", body: `${assignment!.title}: ${marks}/${assignment!.maxMarks}`, type: "grade", linkTo: "/cohort-student/grades" });
       toast.success("Grade posted. Student notified (simulated).");
+      setGradedInfo(true);
     } else toast.success("Draft saved");
   }
 
@@ -103,6 +106,13 @@ export default function GradeAssignment() {
           )}
         </CardContent></Card>
       </div>
+
+      <InfoDialog
+        open={gradedInfo}
+        onOpenChange={setGradedInfo}
+        title="Grade posted"
+        description={<>Grade posted. The <strong>student</strong> has been notified and can now view their marks and feedback. The mark feeds their module CA total.</>}
+      />
     </div>
   );
 }

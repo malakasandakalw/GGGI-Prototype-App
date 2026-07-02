@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ export default function QuizVerification() {
   const queue = quizzes.filter((q) => q.status === "submitted");
   const [selectedId, setSelectedId] = useState<string | null>(queue[0]?.id ?? null);
   const [feedback, setFeedback] = useState("");
+  const [approved, setApproved] = useState<string | null>(null);
   const selected = quizzes.find((q) => q.id === selectedId && q.status === "submitted");
 
   const moduleName = (id: string) => modules.find((m) => m.id === id)?.name ?? "";
@@ -29,6 +31,7 @@ export default function QuizVerification() {
     updateQuiz(selected.id, { status: "active", verifiedAt: new Date().toISOString() });
     addNotification({ recipientId: selected.createdByLecturerId, title: "Quiz approved", body: `${selected.title} was approved.`, type: "quiz" });
     toast.success("Quiz approved and made available to students.");
+    setApproved(selected.title);
     setSelectedId(null); setFeedback("");
   }
   function returnQz() {
@@ -113,6 +116,13 @@ export default function QuizVerification() {
           </CardContent>
         </Card>
       </div>
+
+      <InfoDialog
+        open={!!approved}
+        onOpenChange={(o) => !o && setApproved(null)}
+        title="Quiz approved"
+        description={<><strong>{approved}</strong> approved. It becomes available to <strong>students</strong> during its scheduled availability window.</>}
+      />
     </div>
   );
 }

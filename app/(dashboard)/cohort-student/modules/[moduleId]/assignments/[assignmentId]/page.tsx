@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Upload } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,12 +22,14 @@ export default function CohortAssignment() {
   const sub = submissions.find((s) => s.assignmentId === assignmentId && s.studentId === currentUser?.id);
   const [text, setText] = useState(sub?.textContent ?? "");
   const [fileName, setFileName] = useState(sub?.fileName ?? "");
+  const [info, setInfo] = useState(false);
 
   if (!assignment) return <div className="p-8">Assignment not found.</div>;
   const days = daysUntil(assignment.dueDate);
   const closed = days < 0;
 
   function submit() {
+    const isNew = !sub;
     upsertSubmission({
       assignmentId: assignment!.id,
       studentId: currentUser!.id,
@@ -36,7 +39,8 @@ export default function CohortAssignment() {
       gradingStatus: "submitted",
       submittedAt: new Date().toISOString(),
     });
-    toast.success("Assignment submitted successfully.");
+    toast.success(isNew ? "Assignment submitted successfully." : "Submission updated.");
+    if (isNew) setInfo(true);
   }
 
   return (
@@ -86,6 +90,13 @@ export default function CohortAssignment() {
           </CardContent>
         </Card>
       </div>
+
+      <InfoDialog
+        open={info}
+        onOpenChange={setInfo}
+        title="Assignment submitted"
+        description={<>Your <strong>Lecturer</strong> will grade it, and you&apos;ll be notified when your marks and feedback are available. You can update your submission any time before the deadline.</>}
+      />
     </div>
   );
 }

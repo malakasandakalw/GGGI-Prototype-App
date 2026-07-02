@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,18 +19,29 @@ import type { Question } from "@/lib/types";
 
 type Phase = "intro" | "attempt" | "result";
 
+// Fill-blank answers accept a comma-separated list of acceptable strings.
+function fillBlankOk(correct: string | string[], answer: string | string[] | undefined) {
+  const accepted = (Array.isArray(correct) ? correct : String(correct).split(","))
+    .map((s) => s.trim().toLowerCase());
+  return accepted.includes(String(answer ?? "").trim().toLowerCase());
+}
+
 export default function QuizAttempt() {
   const { moduleId, quizId } = useParams<{ moduleId: string; quizId: string }>();
   const router = useRouter();
   const { currentUser, quizzes, quizSubmissions, addQuizSubmission } = useStore();
   const quiz = quizzes.find((q) => q.id === quizId);
-  const existing = quizSubmissions.find((s) => s.quizId === quizId && s.studentId === currentUser?.id);
+  const myAttempts = quizSubmissions.filter((s) => s.quizId === quizId && s.studentId === currentUser?.id);
+  const attemptsUsed = myAttempts.length;
+  const latest = myAttempts[myAttempts.length - 1];
 
-  const [phase, setPhase] = useState<Phase>(existing ? "result" : "intro");
+  const [phase, setPhase] = useState<Phase>(attemptsUsed > 0 ? "result" : "intro");
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [seconds, setSeconds] = useState((quiz?.timeLimitMinutes ?? 20) * 60);
-  const [score, setScore] = useState(existing?.autoScore ?? 0);
+  const [score, setScore] = useState(0);
+  const [submittedInfo, setSubmittedInfo] = useState(false);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
     if (phase !== "attempt") return;
@@ -37,7 +49,17 @@ export default function QuizAttempt() {
     return () => clearInterval(t);
   }, [phase]);
 
+  // Auto-submit when the timer runs out.
+  useEffect(() => {
+    if (phase === "attempt" && seconds === 0 && !submittedRef.current) {
+      toast.info("Time's up — submitting your quiz.");
+      submit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seconds, phase]);
+
   if (!quiz) return <div className="p-8">Quiz not found.</div>;
+  const attemptsRemaining = Math.max(0, quiz.allowedAttempts - attemptsUsed);
 
   const q = quiz.questions[idx];
   const allAnswered = quiz.questions.every((qq) => answers[qq.id] !== undefined && answers[qq.id] !== "");
@@ -56,15 +78,18 @@ export default function QuizAttempt() {
     for (const qq of quiz!.questions) {
       if (qq.type === "short-answer") continue;
       const a = answers[qq.id];
-      const ok = Array.isArray(qq.correctAnswer)
-        ? JSON.stringify([...((a as string[]) ?? [])].sort()) === JSON.stringify([...qq.correctAnswer].sort())
-        : a === qq.correctAnswer;
+      let ok = false;
+      if (qq.type === "fill-blank") ok = fillBlankOk(qq.correctAnswer, a);
+      else if (Array.isArray(qq.correctAnswer)) ok = JSON.stringify([...((a as string[]) ?? [])].sort()) === JSON.stringify([...qq.correctAnswer].sort());
+      else ok = a === qq.correctAnswer;
       if (ok) s += qq.marks;
     }
     return s;
   }
 
   function submit() {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     const auto = grade();
     const hasShort = quiz!.questions.some((qq) => qq.type === "short-answer");
     addQuizSubmission({
@@ -75,6 +100,15 @@ export default function QuizAttempt() {
     setScore(auto);
     setPhase("result");
     toast.success("Quiz submitted");
+    setSubmittedInfo(true);
+  }
+
+  function startAttempt() {
+    submittedRef.current = false;
+    setAnswers({});
+    setIdx(0);
+    setSeconds((quiz!.timeLimitMinutes ?? 20) * 60);
+    setPhase("attempt");
   }
 
   if (phase === "intro") {
@@ -87,14 +121,15 @@ export default function QuizAttempt() {
           <Row label="Total Marks" value={`${quiz.totalMarks}`} />
           <Row label="Time Limit" value={quiz.timeLimitMinutes ? `${quiz.timeLimitMinutes} min` : "None"} />
           <Row label="Attempts Allowed" value={`${quiz.allowedAttempts}`} />
-          <Button className="w-full mt-2" onClick={() => setPhase("attempt")}>Start Quiz</Button>
+          <Row label="Attempts Remaining" value={`${attemptsRemaining}`} />
+          <Button className="w-full mt-2" disabled={attemptsRemaining === 0} onClick={startAttempt}>Start Quiz</Button>
         </CardContent></Card>
       </div>
     );
   }
 
   if (phase === "result") {
-    const sub = quizSubmissions.find((s) => s.quizId === quizId && s.studentId === currentUser?.id);
+    const sub = latest;
     const finalScore = sub?.finalScore ?? score;
     const pending = sub?.manualReviewPending;
     return (
@@ -105,16 +140,22 @@ export default function QuizAttempt() {
           <div className="text-center">
             <p className="text-4xl font-bold">{finalScore}<span className="text-xl text-muted-foreground">/{quiz.totalMarks}</span></p>
             <p className="text-sm text-muted-foreground mt-1">Auto-graded score</p>
+            <p className="text-xs text-muted-foreground mt-1">Attempt {attemptsUsed} of {quiz.allowedAttempts}</p>
           </div>
           {pending && <p className="text-sm text-amber-600 text-center">Some questions are pending manual review by your lecturer.</p>}
+          {attemptsRemaining > 0
+            ? <div className="text-center"><Button variant="outline" onClick={startAttempt}>Retake Quiz ({attemptsRemaining} left)</Button></div>
+            : <p className="text-sm text-muted-foreground text-center">No attempts remaining.</p>}
           {quiz.showAnswersAfter && sub && (
             <div className="space-y-2 border-t pt-4">
               {quiz.questions.map((qq, i) => {
                 const a = sub.answers[qq.id];
                 const auto = qq.type !== "short-answer";
-                const ok = auto && (Array.isArray(qq.correctAnswer)
-                  ? JSON.stringify([...((a as string[]) ?? [])].sort()) === JSON.stringify([...qq.correctAnswer].sort())
-                  : a === qq.correctAnswer);
+                const ok = auto && (qq.type === "fill-blank"
+                  ? fillBlankOk(qq.correctAnswer, a)
+                  : Array.isArray(qq.correctAnswer)
+                    ? JSON.stringify([...((a as string[]) ?? [])].sort()) === JSON.stringify([...qq.correctAnswer].sort())
+                    : a === qq.correctAnswer);
                 return (
                   <div key={qq.id} className="text-sm rounded border p-3">
                     <p className="font-medium">{i + 1}. {qq.text}</p>
@@ -126,6 +167,13 @@ export default function QuizAttempt() {
             </div>
           )}
         </CardContent></Card>
+
+        <InfoDialog
+          open={submittedInfo}
+          onOpenChange={setSubmittedInfo}
+          title="Quiz submitted"
+          description={<>Your quiz was auto-graded instantly. Any <strong>short-answer</strong> questions are sent to your <strong>Lecturer</strong> for manual marking — your final score updates once they review them.</>}
+        />
       </div>
     );
   }
@@ -135,7 +183,7 @@ export default function QuizAttempt() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm font-medium">Question {idx + 1} of {quiz.questions.length}</p>
-        {quiz.timeLimitMinutes && <span className="flex items-center gap-1 text-sm font-mono"><Clock className="size-4" /> {mm}:{String(ss).padStart(2, "0")}</span>}
+        {quiz.timeLimitMinutes && <span className={`flex items-center gap-1 text-sm font-mono ${seconds <= 30 ? "text-red-600" : ""}`}><Clock className="size-4" /> {mm}:{String(ss).padStart(2, "0")}</span>}
       </div>
       <Progress value={((idx + 1) / quiz.questions.length) * 100} className="mb-4" />
       <Card><CardContent className="pt-6 space-y-4">

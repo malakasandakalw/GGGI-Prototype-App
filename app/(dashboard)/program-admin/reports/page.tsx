@@ -8,16 +8,33 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useStore } from "@/lib/store/provider";
+import { formatDate } from "@/lib/utils/date";
 
 export default function ProgramAdminReports() {
-  const { programs, modules, lectures, users, moduleGrades } = useStore();
+  const { programs, modules, lectures, users, moduleGrades, intakes, calendarEvents } = useStore();
   const myPrograms = programs.filter((p) => p.status !== "archived");
+  const programName = (id?: string) => programs.find((p) => p.id === id)?.name ?? "All programs";
 
   const enrollmentData = myPrograms.map((p) => ({
     name: p.name,
     count: users.filter((u) => u.role === "cohort-student" && u.programId === p.id).length,
   }));
   const maxEnroll = Math.max(1, ...enrollmentData.map((d) => d.count));
+
+  // Item I — per-intake enrollment breakdown
+  const intakeData = intakes.map((i) => ({
+    id: i.id,
+    label: i.label,
+    program: programName(i.programId),
+    status: i.status,
+    enrolled: i.enrolledStudentIds.length,
+    capacity: i.maxCapacity,
+  }));
+
+  // Item I — exam schedule overview across all programs
+  const examEvents = [...calendarEvents]
+    .filter((e) => e.type === "exam")
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   const exportBtn = <Button variant="outline" size="sm" onClick={() => toast.success("Report exported successfully")}><Download className="size-4" /> Export (Mock)</Button>;
 
@@ -29,12 +46,14 @@ export default function ProgramAdminReports() {
           <TabsTrigger value="enrollment">Enrollment</TabsTrigger>
           <TabsTrigger value="performance">Academic Performance</TabsTrigger>
           <TabsTrigger value="content">Content Status</TabsTrigger>
+          <TabsTrigger value="exams">Exam Schedule</TabsTrigger>
           <TabsTrigger value="workload">Lecturer Workload</TabsTrigger>
         </TabsList>
 
         <TabsContent value="enrollment">
           <Card><CardContent className="pt-6">
             <div className="flex justify-end mb-4">{exportBtn}</div>
+            <p className="text-sm font-medium mb-3">Enrollment per Program</p>
             <div className="space-y-4">
               {enrollmentData.map((d) => (
                 <div key={d.name}>
@@ -43,6 +62,21 @@ export default function ProgramAdminReports() {
                 </div>
               ))}
             </div>
+            <p className="text-sm font-medium mt-8 mb-3">Enrollment per Intake</p>
+            <Table>
+              <TableHeader><TableRow><TableHead>Intake</TableHead><TableHead>Program</TableHead><TableHead>Status</TableHead><TableHead>Enrolled</TableHead><TableHead>Capacity</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {intakeData.map((i) => (
+                  <TableRow key={i.id}>
+                    <TableCell>{i.label}</TableCell>
+                    <TableCell>{i.program}</TableCell>
+                    <TableCell className="capitalize">{i.status}</TableCell>
+                    <TableCell>{i.enrolled}</TableCell>
+                    <TableCell>{i.capacity ?? "—"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent></Card>
         </TabsContent>
 
@@ -79,6 +113,27 @@ export default function ProgramAdminReports() {
                     <TableCell>{ls.filter((l) => l.status === "draft").length}</TableCell>
                   </TableRow>;
                 })}
+              </TableBody>
+            </Table>
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="exams">
+          <Card><CardContent className="pt-6">
+            <div className="flex justify-end mb-4">{exportBtn}</div>
+            <Table>
+              <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Exam</TableHead><TableHead>Program</TableHead><TableHead>Time</TableHead><TableHead>Venue</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {examEvents.map((e) => (
+                  <TableRow key={e.id}>
+                    <TableCell>{formatDate(e.date)}</TableCell>
+                    <TableCell>{e.title}</TableCell>
+                    <TableCell>{programName(e.programId)}</TableCell>
+                    <TableCell>{e.startTime ? `${e.startTime}${e.endTime ? `–${e.endTime}` : ""}` : "—"}</TableCell>
+                    <TableCell>{e.venue ?? "—"}</TableCell>
+                  </TableRow>
+                ))}
+                {examEvents.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No exams scheduled.</TableCell></TableRow>}
               </TableBody>
             </Table>
           </CardContent></Card>

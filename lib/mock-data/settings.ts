@@ -17,4 +17,10 @@ export const systemSettings = {
   academicYear: "2026",
   semestersPerYear: 2,
   semesterDurationWeeks: 18,
+  // Cross-stream enrollment rules (SRS §4.1, §7.4) — govern how HODs expose
+  // modules and how the Registrar processes cross-stream requests.
+  allowCohortToCohort: true,
+  allowCohortToOL: true,
+  allowOLToCohort: true,
+  requireRegistrarPaymentApproval: true,
 };

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { useStore } from "@/lib/store/provider";
 import { formatDate } from "@/lib/utils/date";
 
@@ -21,11 +22,14 @@ export default function ProgramAdminAnnouncements() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [target, setTarget] = useState("all");
+  const [posted, setPosted] = useState<string | null>(null);
 
   function publish() {
+    const label = target === "all" ? "all programs" : myPrograms.find((p) => p.id === target)?.name ?? target;
     addAnnouncement({ title, body, target });
     toast.success("Announcement published");
     setTitle(""); setBody("");
+    setPosted(label);
   }
 
   return (
@@ -64,6 +68,13 @@ export default function ProgramAdminAnnouncements() {
           </CardContent>
         </Card>
       </div>
+
+      <InfoDialog
+        open={!!posted}
+        onOpenChange={(o) => !o && setPosted(null)}
+        title="Announcement published"
+        description={<>Announcement published to all students and staff in <strong>{posted}</strong>. It appears on their dashboards and is emailed (simulated).</>}
+      />
     </div>
   );
 }

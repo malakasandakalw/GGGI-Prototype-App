@@ -18,16 +18,34 @@ import {
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { useStore } from "@/lib/store/provider";
+import { formatDate } from "@/lib/utils/date";
 import type { Program } from "@/lib/types";
 
 export default function ProgramAdminPrograms() {
-  const { currentUser, programs, modules, users, updateProgram, addNotification } = useStore();
+  const { currentUser, programs, modules, users, intakes, updateProgram, addIntake, addNotification } = useStore();
   const myPrograms = programs.filter((p) => currentUser?.programIds?.includes(p.id));
   const pending = myPrograms.filter((p) => p.status === "submitted");
   const [review, setReview] = useState<Program | null>(null);
   const [feedback, setFeedback] = useState("");
   const [showReturn, setShowReturn] = useState(false);
+  const [approvedInfo, setApprovedInfo] = useState<Program | null>(null);
+  const [returnedInfo, setReturnedInfo] = useState<Program | null>(null);
+  // Item E — open intake
+  const [intakeFor, setIntakeFor] = useState<Program | null>(null);
+  const [intakeInfo, setIntakeInfo] = useState<{ program: Program; open: string; close: string } | null>(null);
+  const [inLabel, setInLabel] = useState("");
+  const [inOpen, setInOpen] = useState("");
+  const [inClose, setInClose] = useState("");
+  const [inStart, setInStart] = useState("");
+  const [inCap, setInCap] = useState("");
 
   const hodName = (id: string) => users.find((u) => u.id === id)?.name ?? "—";
 
@@ -36,12 +54,35 @@ export default function ProgramAdminPrograms() {
     addNotification({ recipientId: p.hodId, title: "Program approved", body: `${p.name} was approved and sent for Super Admin activation.`, type: "system" });
     toast.success("Program approved and sent for Super Admin activation");
     setReview(null);
+    setApprovedInfo(p);
   }
   function returnToHod(p: Program) {
     updateProgram(p.id, { status: "draft", hodComments: feedback });
     addNotification({ recipientId: p.hodId, title: "Program returned", body: `${p.name} was returned with feedback.`, type: "system" });
     toast.success("Returned to HOD with feedback");
     setReview(null); setFeedback(""); setShowReturn(false);
+    setReturnedInfo(p);
+  }
+  function openIntakeFor(p: Program) {
+    setIntakeFor(p);
+    setInLabel(`${new Date().getFullYear() + 1} Intake`);
+    setInOpen(""); setInClose(""); setInStart(""); setInCap("");
+  }
+  function saveIntake() {
+    if (!intakeFor) return;
+    addIntake({
+      programId: intakeFor.id,
+      label: inLabel,
+      applicationOpenDate: inOpen,
+      applicationCloseDate: inClose,
+      academicStartDate: inStart,
+      maxCapacity: inCap ? Number(inCap) : undefined,
+      status: "open",
+    });
+    addNotification({ recipientId: "u-reg", title: "Intake opened", body: `${inLabel} for ${intakeFor.name} is now accepting applications.`, type: "application" });
+    toast.success("Intake opened — now live on the application portal");
+    setIntakeInfo({ program: intakeFor, open: inOpen, close: inClose });
+    setIntakeFor(null);
   }
 
   const Row = ({ p }: { p: Program }) => (
@@ -51,7 +92,10 @@ export default function ProgramAdminPrograms() {
       <TableCell>{hodName(p.hodId)}</TableCell>
       <TableCell className="uppercase text-xs">{p.level}</TableCell>
       <TableCell><StatusBadge status={p.status} /></TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-right space-x-2">
+        {p.status === "active" && (
+          <Button size="sm" variant="outline" onClick={() => openIntakeFor(p)}>Open Intake</Button>
+        )}
         <Button size="sm" variant={p.status === "submitted" ? "default" : "outline"} onClick={() => { setReview(p); setShowReturn(false); }}>
           {p.status === "submitted" ? "Review" : "View"}
         </Button>
@@ -127,6 +171,21 @@ export default function ProgramAdminPrograms() {
                     <p className="text-sm text-muted-foreground bg-muted rounded p-3">{review.hodComments}</p>
                   </div>
                 )}
+                {review.status === "active" && (
+                  <div className="pt-2 border-t space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Application Intakes</p>
+                      <Button size="sm" variant="outline" onClick={() => openIntakeFor(review)}>Open Intake</Button>
+                    </div>
+                    {intakes.filter((i) => i.programId === review.id).map((i) => (
+                      <div key={i.id} className="flex items-center justify-between rounded border p-2 text-sm">
+                        <span>{i.label} <span className="text-xs text-muted-foreground">· {formatDate(i.applicationOpenDate)}–{formatDate(i.applicationCloseDate)}</span></span>
+                        <Badge variant="secondary" className="capitalize">{i.status}</Badge>
+                      </div>
+                    ))}
+                    {intakes.filter((i) => i.programId === review.id).length === 0 && <p className="text-xs text-muted-foreground">No intakes yet.</p>}
+                  </div>
+                )}
                 {review.status === "submitted" && (
                   <div className="space-y-3 pt-2 border-t">
                     {showReturn && (
@@ -147,6 +206,48 @@ export default function ProgramAdminPrograms() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Item E — Open Intake dialog */}
+      <Dialog open={!!intakeFor} onOpenChange={(o) => !o && setIntakeFor(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Open Application Intake</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground -mt-2">{intakeFor?.name}</p>
+          <div className="space-y-4">
+            <div className="space-y-1.5"><Label className="text-xs">Intake Label</Label><Input value={inLabel} onChange={(e) => setInLabel(e.target.value)} placeholder="e.g. 2027 Intake" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5"><Label className="text-xs">Applications Open</Label><Input type="date" value={inOpen} onChange={(e) => setInOpen(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">Applications Close</Label><Input type="date" value={inClose} onChange={(e) => setInClose(e.target.value)} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5"><Label className="text-xs">Academic Start</Label><Input type="date" value={inStart} onChange={(e) => setInStart(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">Capacity</Label><Input type="number" value={inCap} onChange={(e) => setInCap(e.target.value)} placeholder="e.g. 120" /></div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIntakeFor(null)}>Cancel</Button>
+            <Button disabled={!inLabel || !inOpen || !inClose} onClick={saveIntake}>Open Intake</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <InfoDialog
+        open={!!approvedInfo}
+        onOpenChange={(o) => !o && setApprovedInfo(null)}
+        title="Program approved & escalated"
+        description={<><strong>{approvedInfo?.name}</strong> approved and escalated to the <strong>Super Admin</strong> for final activation. The HOD has been notified. Once the Super Admin activates it, an intake can be opened and it appears on the public portal.</>}
+      />
+      <InfoDialog
+        open={!!returnedInfo}
+        onOpenChange={(o) => !o && setReturnedInfo(null)}
+        title="Returned to HOD"
+        description={<><strong>{returnedInfo?.name}</strong> returned to the <strong>HOD</strong> with your comments. It moves back to <em>Draft</em> so the HOD can revise the structure and resubmit.</>}
+      />
+      <InfoDialog
+        open={!!intakeInfo}
+        onOpenChange={(o) => !o && setIntakeInfo(null)}
+        title="Intake opened"
+        description={<>Intake opened for <strong>{intakeInfo?.program.name}</strong> ({intakeInfo && formatDate(intakeInfo.open)}–{intakeInfo && formatDate(intakeInfo.close)}). The program now appears on the <strong>public application portal</strong>; submitted applications go to the <strong>Registrar</strong>.</>}
+      />
     </div>
   );
 }

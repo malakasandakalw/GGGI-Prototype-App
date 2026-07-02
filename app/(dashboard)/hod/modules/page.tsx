@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, X } from "lucide-react";
+import { MoreHorizontal, X, Download } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,13 +16,20 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useStore } from "@/lib/store/provider";
-import type { Module } from "@/lib/types";
+import { gpa, academicClass } from "@/lib/utils/gpa";
+import type { Module, User } from "@/lib/types";
 
 export default function HODModules() {
-  const { currentUser, modules, programs, users, updateModule } = useStore();
+  const { currentUser, modules, programs, users, assignments, submissions, lectures, moduleGrades, updateModule } = useStore();
   const dept = currentUser?.department;
   const deptModules = modules.filter((m) => programs.find((p) => p.id === m.programId)?.department === dept);
   const lecturers = users.filter((u) => u.role === "lecturer" && u.department === dept);
@@ -29,10 +37,16 @@ export default function HODModules() {
   const [status, setStatus] = useState("all");
   const [assign, setAssign] = useState<Module | null>(null);
   const [addLec, setAddLec] = useState("");
+  const [oversight, setOversight] = useState<Module | null>(null);
+  const [transcript, setTranscript] = useState<User | null>(null);
+  const [crossInfo, setCrossInfo] = useState<Module | null>(null);
+  const [assignInfo, setAssignInfo] = useState<{ module: string; lecturer: string } | null>(null);
+  const [lastAssigned, setLastAssigned] = useState("");
 
   const programName = (id: string) => programs.find((p) => p.id === id)?.name ?? "—";
   const semName = (m: Module) => programs.find((p) => p.id === m.programId)?.semesters.find((s) => s.id === m.semesterId)?.name ?? "—";
   const lecNames = (m: Module) => m.lecturerIds.map((id) => users.find((u) => u.id === id)?.name).filter(Boolean).join(", ") || "Unassigned";
+  const studentName = (id: string) => users.find((u) => u.id === id)?.name ?? id;
 
   const filtered = useMemo(
     () => deptModules.filter((m) => (program === "all" || m.programId === program) && (status === "all" || m.status === status)),
@@ -44,8 +58,13 @@ export default function HODModules() {
     const ids = Array.from(new Set([...assign.lecturerIds, addLec]));
     updateModule(assign.id, { lecturerIds: ids, primaryLecturerId: assign.primaryLecturerId || addLec });
     setAssign({ ...assign, lecturerIds: ids, primaryLecturerId: assign.primaryLecturerId || addLec });
+    setLastAssigned(users.find((u) => u.id === addLec)?.name ?? "The lecturer");
     setAddLec("");
     toast.success("Lecturer assigned");
+  }
+  function finishAssign() {
+    if (assign && lastAssigned) setAssignInfo({ module: `${assign.code} — ${assign.name}`, lecturer: lastAssigned });
+    setAssign(null); setLastAssigned("");
   }
   function removeLecturer(id: string) {
     if (!assign) return;
@@ -53,10 +72,23 @@ export default function HODModules() {
     updateModule(assign.id, { lecturerIds: ids, primaryLecturerId: assign.primaryLecturerId === id ? (ids[0] ?? "") : assign.primaryLecturerId });
     setAssign({ ...assign, lecturerIds: ids });
   }
+  function toggleCrossStream(m: Module) {
+    updateModule(m.id, { isCrossStreamEnabled: !m.isCrossStreamEnabled });
+    if (m.isCrossStreamEnabled) toast.success("Cross-stream disabled");
+    else { toast.success("Cross-stream enabled"); setCrossInfo(m); }
+  }
 
   const columns: Column<Module>[] = [
     { key: "code", header: "Code", render: (m) => <span className="font-mono text-xs">{m.code}</span> },
-    { key: "name", header: "Name", render: (m) => <span className="font-medium">{m.name}</span> },
+    {
+      key: "name", header: "Name", render: (m) => (
+        <span className="font-medium flex items-center gap-2">
+          {m.name}
+          {m.isShared && <Badge variant="secondary" className="text-[10px]">Shared</Badge>}
+          {m.isCrossStreamEnabled && <Badge variant="outline" className="text-[10px]">Cross-stream</Badge>}
+        </span>
+      ),
+    },
     { key: "program", header: "Program", render: (m) => programName(m.programId) },
     { key: "sem", header: "Semester", render: (m) => semName(m) },
     { key: "creditValue", header: "Credits" },
@@ -69,7 +101,11 @@ export default function HODModules() {
           <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setAssign(m)}>Assign Lecturer</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { updateModule(m.id, { isCrossStreamEnabled: !m.isCrossStreamEnabled }); toast.success(m.isCrossStreamEnabled ? "Cross-stream disabled" : "Cross-stream enabled"); }}>
+            <DropdownMenuItem onClick={() => setOversight(m)}>View Content &amp; Submissions</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { updateModule(m.id, { isShared: !m.isShared }); toast.success(m.isShared ? "Shared designation removed" : "Marked as shared module"); }}>
+              {m.isShared ? "Unmark" : "Mark as"} Shared Module
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toggleCrossStream(m)}>
               {m.isCrossStreamEnabled ? "Disable" : "Enable"} Cross-Stream
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => { updateModule(m.id, { status: "archived" }); toast.success("Module archived"); }}>Archive Module</DropdownMenuItem>
@@ -101,7 +137,7 @@ export default function HODModules() {
         }
       />
 
-      <Dialog open={!!assign} onOpenChange={(o) => !o && setAssign(null)}>
+      <Dialog open={!!assign} onOpenChange={(o) => !o && finishAssign()}>
         <DialogContent>
           <DialogHeader><DialogTitle>Assign Lecturers — {assign?.code}</DialogTitle></DialogHeader>
           {assign && (
@@ -132,9 +168,113 @@ export default function HODModules() {
               </div>
             </div>
           )}
-          <DialogFooter><Button variant="outline" onClick={() => setAssign(null)}>Done</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={finishAssign}>Done</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* P — read-only content & submissions oversight */}
+      <Sheet open={!!oversight} onOpenChange={(o) => !o && setOversight(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+          {oversight && (
+            <>
+              <SheetHeader>
+                <SheetTitle>{oversight.code} — {oversight.name}</SheetTitle>
+                <SheetDescription>Read-only oversight of content and student submissions.</SheetDescription>
+              </SheetHeader>
+              <div className="px-4 pb-6 space-y-5">
+                <div>
+                  <p className="text-sm font-medium mb-2">Lectures</p>
+                  <div className="space-y-1.5">
+                    {lectures.filter((l) => l.moduleId === oversight.id).map((l) => (
+                      <div key={l.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                        <span>{l.title}</span><StatusBadge status={l.status} />
+                      </div>
+                    ))}
+                    {lectures.filter((l) => l.moduleId === oversight.id).length === 0 && <p className="text-sm text-muted-foreground">No lectures yet.</p>}
+                  </div>
+                </div>
+                {assignments.filter((a) => a.moduleId === oversight.id).map((a) => {
+                  const subs = submissions.filter((s) => s.assignmentId === a.id);
+                  return (
+                    <div key={a.id}>
+                      <p className="text-sm font-medium mb-2">{a.title} <span className="text-xs text-muted-foreground">· {subs.length} submissions</span></p>
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Student</TableHead><TableHead>Status</TableHead><TableHead>Marks</TableHead><TableHead /></TableRow></TableHeader>
+                        <TableBody>
+                          {subs.map((s) => (
+                            <TableRow key={s.id}>
+                              <TableCell>{studentName(s.studentId)}</TableCell>
+                              <TableCell className="capitalize">{s.gradingStatus}</TableCell>
+                              <TableCell>{s.marks != null ? `${s.marks}/${a.maxMarks}` : "—"}</TableCell>
+                              <TableCell className="text-right">
+                                <Button size="sm" variant="ghost" onClick={() => setTranscript(users.find((u) => u.id === s.studentId) ?? null)}>Transcript</Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {subs.length === 0 && <TableRow><TableCell colSpan={4} className="text-muted-foreground text-sm">No submissions.</TableCell></TableRow>}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                })}
+                {assignments.filter((a) => a.moduleId === oversight.id).length === 0 && <p className="text-sm text-muted-foreground">No assignments in this module.</p>}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* R — read-only transcript */}
+      <Sheet open={!!transcript} onOpenChange={(o) => !o && setTranscript(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          {transcript && (() => {
+            const grades = moduleGrades.filter((g) => g.studentId === transcript.id && g.published);
+            const cgpa = gpa(grades, modules);
+            const cls = academicClass(cgpa);
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle>{transcript.name}</SheetTitle>
+                  <SheetDescription>Read-only transcript · {transcript.studentId ?? "—"}</SheetDescription>
+                </SheetHeader>
+                <div className="px-4 pb-6 space-y-4">
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div><p className="text-xs text-muted-foreground">CGPA</p><p className="text-xl font-semibold">{cgpa.toFixed(2)}</p></div>
+                    <Badge className={cls.tone}>{cls.label}</Badge>
+                  </div>
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Module</TableHead><TableHead>Grade</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {grades.map((g) => (
+                        <TableRow key={g.moduleId}>
+                          <TableCell>{modules.find((m) => m.id === g.moduleId)?.code ?? g.moduleId}</TableCell>
+                          <TableCell className="font-semibold">{g.grade}</TableCell>
+                        </TableRow>
+                      ))}
+                      {grades.length === 0 && <TableRow><TableCell colSpan={2} className="text-muted-foreground text-sm">No published results yet.</TableCell></TableRow>}
+                    </TableBody>
+                  </Table>
+                  <Button variant="outline" size="sm" onClick={() => toast.success("Transcript downloaded (simulated)")}><Download className="size-4" /> Download (Mock)</Button>
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
+
+      <InfoDialog
+        open={!!assignInfo}
+        onOpenChange={(o) => !o && setAssignInfo(null)}
+        title="Lecturer assigned"
+        description={<><strong>{assignInfo?.lecturer}</strong> assigned to <strong>{assignInfo?.module}</strong> and notified. They can now upload lectures and build quizzes — all of which come back to <strong>you</strong> for verification before students see them.</>}
+      />
+
+      <InfoDialog
+        open={!!crossInfo}
+        onOpenChange={(o) => !o && setCrossInfo(null)}
+        title="Cross-stream enrollment enabled"
+        description={<><strong>{crossInfo?.code} — {crossInfo?.name}</strong> is now open for cross-stream enrollment. It will appear in the directories where <strong>Cohort students (other programs)</strong> and <strong>Open Learning students</strong> can request access — each request is approved by the <strong>Registrar</strong>.</>}
+      />
     </div>
   );
 }

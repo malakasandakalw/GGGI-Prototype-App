@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Download } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -43,7 +46,9 @@ export default function AuditLogPage() {
 
   return (
     <div>
-      <PageHeader title="Audit Log" description="Searchable log of all significant system actions." />
+      <PageHeader title="Audit Log" description="Searchable log of all significant system actions.">
+        <Button variant="outline" size="sm" onClick={() => toast.success(`Exported ${filtered.length} audit entries (simulated)`)}><Download className="size-4" /> Export Log</Button>
+      </PageHeader>
       <DataTable
         columns={columns}
         data={filtered}

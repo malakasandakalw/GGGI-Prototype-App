@@ -11,12 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { useStore } from "@/lib/store/provider";
 
 export default function ApplyPage() {
   const { programs, addApplication } = useStore();
   const activePrograms = programs.filter((p) => p.status === "active");
   const [submitted, setSubmitted] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [programId, setProgramId] = useState(activePrograms[0]?.id ?? "");
   const [files, setFiles] = useState<string[]>([]);
 
@@ -36,6 +38,7 @@ export default function ApplyPage() {
       programId,
     });
     setSubmitted(app.referenceNumber);
+    setInfo(app.referenceNumber);
   }
 
   if (submitted) {
@@ -58,6 +61,12 @@ export default function ApplyPage() {
             </Button>
           </CardContent>
         </Card>
+        <InfoDialog
+          open={!!info}
+          onOpenChange={(o) => !o && setInfo(null)}
+          title="Application received"
+          description={<>Application received — your reference number is <strong>{info}</strong>. The <strong>Registrar</strong> will review your application and contact you about payment. Once payment is confirmed, your student account is created and login details are emailed to you.</>}
+        />
       </div>
     );
   }

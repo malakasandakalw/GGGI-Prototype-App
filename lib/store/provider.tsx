@@ -75,6 +75,8 @@ interface StoreValue {
   addProgram: (p: Partial<Program> & { name: string; code: string }) => Program;
   updateProgram: (id: string, patch: Partial<Program>) => void;
   addSemesterToProgram: (programId: string, semester: Program["semesters"][number]) => void;
+  addIntake: (i: Partial<Intake> & { programId: string; label: string }) => Intake;
+  updateIntake: (id: string, patch: Partial<Intake>) => void;
   addModule: (m: Partial<Module> & { code: string; name: string; programId: string; semesterId: string }) => Module;
   updateModule: (id: string, patch: Partial<Module>) => void;
 
@@ -104,6 +106,8 @@ interface StoreValue {
   // grades
   updateGrade: (studentId: string, moduleId: string, patch: Partial<ModuleGrade>) => void;
   publishResults: (moduleId: string) => void;
+  caSubmittedModuleIds: string[];
+  submitModuleCA: (moduleId: string) => void;
 
   // OL
   addOLCourse: (c: Partial<OLCourse> & { title: string }) => OLCourse;
@@ -111,6 +115,7 @@ interface StoreValue {
   enrollOL: (studentId: string, courseId: string) => void;
   completeOLLesson: (studentId: string, courseId: string, lessonId: string) => void;
   addOLCategory: (c: string) => void;
+  removeOLCategory: (c: string) => void;
 
   // notifications
   addNotification: (n: Partial<Notification> & { recipientId: string; title: string; body: string; type: Notification["type"] }) => void;
@@ -157,6 +162,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [applications, setApplications] = useState<Application[]>(mock.applications);
   const [crossEnrollments, setCrossEnrollments] = useState<CrossEnrollmentRequest[]>(mock.crossEnrollmentRequests);
   const [moduleGrades, setModuleGrades] = useState<ModuleGrade[]>(mock.moduleGrades);
+  const [caSubmittedModuleIds, setCaSubmittedModuleIds] = useState<string[]>([]);
   const [olCourses, setOLCourses] = useState<OLCourse[]>(mock.olCourses);
   const [olEnrollments, setOLEnrollments] = useState<OLEnrollment[]>(mock.olEnrollments);
   const [olCategories, setOLCategories] = useState<string[]>(mock.olCategories);
@@ -227,6 +233,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       applications,
       crossEnrollments,
       moduleGrades,
+      caSubmittedModuleIds,
       olCourses,
       olEnrollments,
       olCategories,
@@ -282,6 +289,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setPrograms((prev) =>
           prev.map((p) => (p.id === programId ? { ...p, semesters: [...p.semesters, semester] } : p)),
         ),
+      addIntake: (i) => {
+        const newI: Intake = {
+          id: uid("in"),
+          applicationOpenDate: new Date().toISOString().slice(0, 10),
+          applicationCloseDate: new Date().toISOString().slice(0, 10),
+          academicStartDate: new Date().toISOString().slice(0, 10),
+          status: "open",
+          enrolledStudentIds: [],
+          ...i,
+        } as Intake;
+        setIntakes((prev) => [...prev, newI]);
+        return newI;
+      },
+      updateIntake: (id, patch) => setIntakes((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x))),
+
       addModule: (m) => {
         const newM: Module = {
           id: uid("m"),
@@ -550,6 +572,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         );
         addAudit({ action: "Results Published", details: `Published results for module ${moduleId}` });
       },
+      submitModuleCA: (moduleId) => {
+        setCaSubmittedModuleIds((prev) => (prev.includes(moduleId) ? prev : [...prev, moduleId]));
+        const mod = modules.find((m) => m.id === moduleId);
+        addNotification({
+          recipientId: "u-hod",
+          title: "CA marks submitted",
+          body: `Continuous Assessment marks for ${mod?.code ?? moduleId} are ready for the final exam mark.`,
+          type: "grade",
+          linkTo: "/hod/gradebook",
+        });
+        addAudit({ action: "CA Marks Submitted", details: `Submitted CA marks for ${mod?.code ?? moduleId} to HOD` });
+      },
 
       addOLCourse: (c) => {
         const newC: OLCourse = {
@@ -611,6 +645,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }),
         ),
       addOLCategory: (c) => setOLCategories((prev) => (prev.includes(c) ? prev : [...prev, c])),
+      removeOLCategory: (c) => setOLCategories((prev) => prev.filter((x) => x !== c)),
 
       addNotification,
       markNotificationRead: (id) =>
@@ -686,7 +721,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentUser, users, programs, intakes, modules, lectures, assignments, submissions, quizzes,
-    quizSubmissions, applications, crossEnrollments, moduleGrades, olCourses, olEnrollments,
+    quizSubmissions, applications, crossEnrollments, moduleGrades, caSubmittedModuleIds, olCourses, olEnrollments,
     olCategories, notifications, auditEvents, calendarEvents, announcements, discussions, gradeBands,
     notificationTemplates, systemSettings,
   ]);

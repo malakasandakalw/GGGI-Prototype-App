@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { GraduationCap, Download } from "lucide-react";
+import { GraduationCap, Download, Printer } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export default function Transcript() {
   return (
     <div>
       <PageHeader title="Academic Transcript" description="A reference copy of your academic record.">
+        <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print / Save as PDF</Button>
         <Button variant="outline" onClick={() => toast.success("Transcript download simulated.")}><Download className="size-4" /> Download PDF (Mock)</Button>
       </PageHeader>
 

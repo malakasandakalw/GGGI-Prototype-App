@@ -17,6 +17,7 @@ export const modules: Module[] = [
     status: "active",
     isShared: false,
     isCrossStreamEnabled: false,
+    sequentialLectures: true,
   },
   {
     id: "m-cs102",

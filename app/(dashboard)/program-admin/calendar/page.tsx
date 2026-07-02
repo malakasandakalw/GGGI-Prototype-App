@@ -30,6 +30,12 @@ export default function ProgramAdminCalendar() {
   const [programId, setProgramId] = useState(myPrograms[0]?.id ?? "");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [venue, setVenue] = useState("");
+  const [durationHours, setDurationHours] = useState("");
+
+  const needsDetails = type === "exam" || type === "semester";
 
   const clash = date && programId
     ? calendarEvents.find((e) => e.date === date && e.programId === programId)
@@ -39,9 +45,15 @@ export default function ProgramAdminCalendar() {
 
   function openOn(d: string) { setDate(d); setOpen(true); }
   function save() {
-    addCalendarEvent({ title, date, type, programId, notes });
+    addCalendarEvent({
+      title, date, type, programId, notes,
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
+      venue: venue || undefined,
+      durationHours: durationHours ? Number(durationHours) : undefined,
+    });
     toast.success("Event added to calendar");
-    setOpen(false); setTitle(""); setNotes("");
+    setOpen(false); setTitle(""); setNotes(""); setStartTime(""); setEndTime(""); setVenue(""); setDurationHours("");
   }
 
   return (
@@ -63,6 +75,13 @@ export default function ProgramAdminCalendar() {
               <div key={e.id} className="text-sm border-b last:border-0 pb-2">
                 <p className="font-medium">{e.title}</p>
                 <p className="text-xs text-muted-foreground">{formatDate(e.date)} · <span className="capitalize">{e.type}</span></p>
+                {(e.startTime || e.venue || e.durationHours) && (
+                  <p className="text-xs text-muted-foreground">
+                    {e.startTime && <>🕒 {e.startTime}{e.endTime ? `–${e.endTime}` : ""} </>}
+                    {e.durationHours && <>· {e.durationHours}h </>}
+                    {e.venue && <>· 📍 {e.venue}</>}
+                  </p>
+                )}
               </div>
             ))}
           </CardContent>
@@ -89,6 +108,19 @@ export default function ProgramAdminCalendar() {
                 <SelectContent>{myPrograms.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {needsDetails && (
+              <div className="space-y-4 rounded-lg border bg-muted/40 p-3">
+                <p className="text-xs font-medium text-muted-foreground capitalize">{type} schedule details</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5"><Label className="text-xs">Start Time</Label><Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} /></div>
+                  <div className="space-y-1.5"><Label className="text-xs">End Time</Label><Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5"><Label className="text-xs">Venue</Label><Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="e.g. Main Hall" /></div>
+                  <div className="space-y-1.5"><Label className="text-xs">Duration (hrs)</Label><Input type="number" step="0.5" value={durationHours} onChange={(e) => setDurationHours(e.target.value)} placeholder="e.g. 3" /></div>
+                </div>
+              </div>
+            )}
             <div className="space-y-1.5"><Label className="text-xs">Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
             {clash && (
               <Alert className="bg-amber-50 border-amber-200">

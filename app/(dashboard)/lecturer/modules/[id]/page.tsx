@@ -8,6 +8,7 @@ import { ArrowLeft, Plus, MessageSquare } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { InfoDialog } from "@/components/shared/InfoDialog";
 import { QuizBuilder } from "@/components/lecturer/QuizBuilder";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -39,10 +42,17 @@ export default function ModuleHub() {
   const [asgOpen, setAsgOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
   const [asgLevel, setAsgLevel] = useState("module");
+  const [asgSubType, setAsgSubType] = useState<"file" | "text" | "both">("file");
+  const [asgFileTypes, setAsgFileTypes] = useState<string[]>([".pdf", ".docx"]);
+  const [asgVisible, setAsgVisible] = useState(true);
   const [reply, setReply] = useState("");
   const [activeThread, setActiveThread] = useState<string | null>(null);
   const [annTitle, setAnnTitle] = useState("");
   const [annBody, setAnnBody] = useState("");
+  const [createdAsg, setCreatedAsg] = useState(false);
+  const [caInfo, setCaInfo] = useState(false);
+  const [annInfo, setAnnInfo] = useState(false);
+  const FILE_TYPES = [".pdf", ".docx", ".pptx", ".zip", ".jpg", ".png"];
 
   if (!m) return <div className="p-8">Module not found.</div>;
 
@@ -64,15 +74,35 @@ export default function ModuleHub() {
   function createAssignment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    store.addAssignment({ moduleId: m!.id, title: String(fd.get("title")), description: String(fd.get("desc")), maxMarks: Number(fd.get("marks")), dueDate: String(fd.get("due")), lectureId: asgLevel === "lecture" ? String(fd.get("lecture")) : undefined });
+    store.addAssignment({
+      moduleId: m!.id,
+      title: String(fd.get("title")),
+      description: String(fd.get("desc")),
+      maxMarks: Number(fd.get("marks")),
+      submissionType: asgSubType,
+      allowedFileTypes: asgSubType === "text" ? [] : asgFileTypes,
+      maxFileSizeMb: Number(fd.get("maxsize")) || undefined,
+      openDate: String(fd.get("open")),
+      dueDate: String(fd.get("due")),
+      latePolicy: String(fd.get("late")) || undefined,
+      status: asgVisible ? "published" : "draft",
+      lectureId: asgLevel === "lecture" ? String(fd.get("lecture")) : undefined,
+    });
     setAsgOpen(false);
     toast.success("Assignment created");
+    if (asgVisible) setCreatedAsg(true);
+  }
+  function submitCA() {
+    store.submitModuleCA(m!.id);
+    toast.success("CA marks submitted to HOD for review.");
+    setCaInfo(true);
   }
   function postAnnouncement() {
     store.addAnnouncement({ title: annTitle, body: annBody, target: m!.id, moduleId: m!.id });
     toast.success("Announcement posted. All enrolled students notified (simulated).");
-    setAnnTitle(""); setAnnBody("");
+    setAnnTitle(""); setAnnBody(""); setAnnInfo(true);
   }
+  const caSubmitted = store.caSubmittedModuleIds.includes(m.id);
 
   return (
     <div>
@@ -149,8 +179,10 @@ export default function ModuleHub() {
         <TabsContent value="gradebook">
           <Card className="p-0">
             <div className="flex items-center justify-between p-4 border-b">
-              <p className="text-sm text-muted-foreground">CA marks (Final Exam entered by HOD)</p>
-              <Button size="sm" onClick={() => toast.success("CA marks submitted to HOD for review.")}>Submit to HOD</Button>
+              <p className="text-sm text-muted-foreground">CA is auto-aggregated from graded assignments &amp; quizzes. Final Exam is entered by the HOD.</p>
+              {caSubmitted
+                ? <Badge className="bg-emerald-100 text-emerald-800">Submitted to HOD</Badge>
+                : <Button size="sm" onClick={submitCA}>Submit to HOD</Button>}
             </div>
             <Table>
               <TableHeader><TableRow><TableHead>Student</TableHead><TableHead>Assign</TableHead><TableHead>Quiz</TableHead><TableHead>Total CA</TableHead><TableHead>Final Exam</TableHead><TableHead>Grade</TableHead></TableRow></TableHeader>
@@ -263,7 +295,7 @@ export default function ModuleHub() {
 
       {/* Create Assignment Dialog */}
       <Dialog open={asgOpen} onOpenChange={setAsgOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Create Assignment</DialogTitle></DialogHeader>
           <form onSubmit={createAssignment} className="space-y-3">
             <div className="space-y-1.5"><Label className="text-xs">Title</Label><Input name="title" required /></div>
@@ -279,14 +311,65 @@ export default function ModuleHub() {
               </div>
             )}
             <div className="space-y-1.5"><Label className="text-xs">Instructions</Label><Textarea name="desc" /></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><Label className="text-xs">Submission Type</Label>
+              <Select value={asgSubType} onValueChange={(v) => setAsgSubType(v as "file" | "text" | "both")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="file">File upload</SelectItem>
+                  <SelectItem value="text">Text entry</SelectItem>
+                  <SelectItem value="both">File + Text</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {asgSubType !== "text" && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Allowed File Types</Label>
+                  <div className="flex flex-wrap gap-3 rounded-md border p-2">
+                    {FILE_TYPES.map((ft) => (
+                      <label key={ft} className="flex items-center gap-1.5 text-sm">
+                        <Checkbox checked={asgFileTypes.includes(ft)} onCheckedChange={() => setAsgFileTypes((p) => p.includes(ft) ? p.filter((x) => x !== ft) : [...p, ft])} />
+                        {ft}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1.5"><Label className="text-xs">Max File Size (MB)</Label><Input name="maxsize" type="number" defaultValue={10} /></div>
+              </>
+            )}
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5"><Label className="text-xs">Max Marks</Label><Input name="marks" type="number" defaultValue={100} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">Open Date</Label><Input name="open" type="datetime-local" /></div>
               <div className="space-y-1.5"><Label className="text-xs">Due Date</Label><Input name="due" type="datetime-local" /></div>
+            </div>
+            <div className="space-y-1.5"><Label className="text-xs">Late / Grace Policy</Label><Input name="late" placeholder="e.g. 10% penalty per day, up to 3 days" /></div>
+            <div className="flex items-center justify-between rounded-md border p-2.5">
+              <div><p className="text-sm">Visible to students immediately</p><p className="text-xs text-muted-foreground">Off = saved as draft</p></div>
+              <Switch checked={asgVisible} onCheckedChange={setAsgVisible} />
             </div>
             <DialogFooter><Button type="submit">Create Assignment</Button></DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      <InfoDialog
+        open={createdAsg}
+        onOpenChange={setCreatedAsg}
+        title="Assignment published"
+        description={<>Assignment published to <strong>students</strong> in this module. They can submit until the due date, after which the submission window <strong>closes automatically</strong>. You&apos;ll grade submissions from the Assignments tab.</>}
+      />
+      <InfoDialog
+        open={caInfo}
+        onOpenChange={setCaInfo}
+        title="CA marks submitted"
+        description={<>Continuous Assessment marks submitted to the <strong>HOD</strong>. The HOD will enter the final examination mark, then review and <strong>publish</strong> the results to students.</>}
+      />
+      <InfoDialog
+        open={annInfo}
+        onOpenChange={setAnnInfo}
+        title="Announcement posted"
+        description={<>Announcement posted. All <strong>students</strong> enrolled in this module have been notified (simulated).</>}
+      />
 
       <QuizBuilder open={quizOpen} onOpenChange={setQuizOpen} moduleId={m.id} />
     </div>

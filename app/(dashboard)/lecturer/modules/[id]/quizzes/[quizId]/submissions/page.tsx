@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle2, XCircle, Users, Target, Percent } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card } from "@/components/ui/card";
+import { InfoDialog } from "@/components/shared/InfoDialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/shared/StatCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export default function QuizSubmissions() {
   const subs = quizSubmissions.filter((s) => s.quizId === quizId);
   const [view, setView] = useState<QuizSubmission | null>(null);
   const [manual, setManual] = useState<Record<string, number>>({});
+  const [savedInfo, setSavedInfo] = useState(false);
 
   if (!quiz) return <div className="p-8">Quiz not found.</div>;
   const studentName = (sid: string) => users.find((u) => u.id === sid)?.name ?? sid;
@@ -41,10 +43,26 @@ export default function QuizSubmissions() {
     updateQuizSubmission(view.id, { manualMarks: manual, finalScore: view.autoScore + added, manualReviewPending: false });
     toast.success("Manual marks saved");
     setView(null); setManual({});
+    setSavedInfo(true);
   }
 
   const isCorrect = (qid: string, ans: string | string[], correct: string | string[]) =>
-    Array.isArray(correct) ? JSON.stringify([...(ans as string[])].sort()) === JSON.stringify([...correct].sort()) : ans === correct;
+    Array.isArray(correct) ? JSON.stringify([...(ans as string[] ?? [])].sort()) === JSON.stringify([...correct].sort()) : ans === correct;
+
+  // H — per-question analytics: % of students correct per question (identifies weak topics).
+  const questionStats = quiz.questions.map((q, i) => {
+    let correct = 0;
+    for (const s of subs) {
+      if (q.type === "short-answer") {
+        if ((s.manualMarks?.[q.id] ?? 0) >= q.marks) correct++;
+      } else {
+        const ans = s.answers[q.id];
+        if (ans !== undefined && isCorrect(q.id, ans, q.correctAnswer)) correct++;
+      }
+    }
+    const pct = subs.length ? Math.round((correct / subs.length) * 100) : 0;
+    return { id: q.id, label: `Q${i + 1}`, text: q.text, correct, pct };
+  });
 
   return (
     <div>
@@ -73,6 +91,25 @@ export default function QuizSubmissions() {
             {subs.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No submissions yet</TableCell></TableRow>}
           </TableBody>
         </Table>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader><CardTitle className="text-base">Question Analysis</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          {subs.length === 0 && <p className="text-sm text-muted-foreground">No submissions yet — analytics appear once students attempt this quiz.</p>}
+          {subs.length > 0 && questionStats.map((qs) => (
+            <div key={qs.id}>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="truncate pr-2"><span className="font-medium">{qs.label}.</span> {qs.text}</span>
+                <span className={`font-medium shrink-0 ${qs.pct < 50 ? "text-red-600" : qs.pct < 75 ? "text-amber-600" : "text-emerald-700"}`}>{qs.pct}%</span>
+              </div>
+              <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                <div className={`h-full ${qs.pct < 50 ? "bg-red-500" : qs.pct < 75 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${qs.pct}%` }} />
+              </div>
+            </div>
+          ))}
+          {subs.length > 0 && <p className="text-xs text-muted-foreground pt-1">Low percentages flag poorly understood topics worth revisiting in class.</p>}
+        </CardContent>
       </Card>
 
       <Sheet open={!!view} onOpenChange={(o) => !o && setView(null)}>
@@ -111,6 +148,13 @@ export default function QuizSubmissions() {
           )}
         </SheetContent>
       </Sheet>
+
+      <InfoDialog
+        open={savedInfo}
+        onOpenChange={setSavedInfo}
+        title="Manual marks saved"
+        description={<>Manual marks saved. The <strong>student&apos;s</strong> final quiz score is now complete and recorded to the gradebook.</>}
+      />
     </div>
   );
 }
