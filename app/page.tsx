@@ -55,7 +55,7 @@ export default function LoginPage() {
                     <p className="text-xs text-muted-foreground truncate">{c.desc}</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => go(c.role)}>
+                <Button size="sm" onClick={() => go(c.role)}>
                   Log in as {c.title}
                 </Button>
                 {c.role === "ol-student" && (
