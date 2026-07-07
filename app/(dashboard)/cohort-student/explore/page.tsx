@@ -62,7 +62,7 @@ export default function CohortExplore() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {published.map((c) => (
               <Card key={c.id} className="overflow-hidden p-0">
-                <div className="h-24 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center"><Globe className="size-8 text-white/80" /></div>
+                <div className="h-24 bg-muted border-b flex items-center justify-center"><Globe className="size-8 text-muted-foreground" /></div>
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-center justify-between"><Badge variant="secondary" className="text-[10px]">{c.category}</Badge><StatusBadge status={c.difficulty} /></div>
                   <p className="font-semibold leading-tight">{c.title}</p>

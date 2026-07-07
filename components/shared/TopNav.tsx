@@ -33,10 +33,10 @@ export function TopNav() {
   }
 
   return (
-    <header className="h-14 border-b bg-card flex items-center gap-3 px-5 sticky top-0 z-30">
+    <header className="h-14 border-b border-border/60 bg-card/80 backdrop-blur-md shadow-sm flex items-center gap-3 px-5 sticky top-0 z-30">
       <div className="relative max-w-sm flex-1 hidden md:block">
-        <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search..." className="pl-9 h-9" />
+        <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <Input placeholder="Search..." className="pl-9 h-9 rounded-full bg-muted/60 border-transparent focus-visible:bg-background" />
       </div>
       <div className="flex-1 md:hidden" />
 

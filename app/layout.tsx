@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/lib/store/provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,6 +7,12 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
+});
+
+const sora = Sora({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -27,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${sora.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <StoreProvider>

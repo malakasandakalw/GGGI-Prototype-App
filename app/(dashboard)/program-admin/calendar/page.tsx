@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, Clock, MapPin, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { CalendarView, eventColors } from "@/components/shared/CalendarView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,10 +76,10 @@ export default function ProgramAdminCalendar() {
                 <p className="font-medium">{e.title}</p>
                 <p className="text-xs text-muted-foreground">{formatDate(e.date)} · <span className="capitalize">{e.type}</span></p>
                 {(e.startTime || e.venue || e.durationHours) && (
-                  <p className="text-xs text-muted-foreground">
-                    {e.startTime && <>🕒 {e.startTime}{e.endTime ? `–${e.endTime}` : ""} </>}
-                    {e.durationHours && <>· {e.durationHours}h </>}
-                    {e.venue && <>· 📍 {e.venue}</>}
+                  <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    {e.startTime && <span className="inline-flex items-center gap-1"><Clock className="size-3" />{e.startTime}{e.endTime ? `–${e.endTime}` : ""}</span>}
+                    {e.durationHours && <span>· {e.durationHours}h</span>}
+                    {e.venue && <span className="inline-flex items-center gap-1">· <MapPin className="size-3" />{e.venue}</span>}
                   </p>
                 )}
               </div>
@@ -123,8 +123,9 @@ export default function ProgramAdminCalendar() {
             )}
             <div className="space-y-1.5"><Label className="text-xs">Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
             {clash && (
-              <Alert className="bg-amber-50 border-amber-200">
-                <AlertDescription>⚠ An event ({clash.title}) is already scheduled on this date for this program.</AlertDescription>
+              <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                <AlertTriangle className="size-4" />
+                <AlertDescription>An event ({clash.title}) is already scheduled on this date for this program.</AlertDescription>
               </Alert>
             )}
           </div>

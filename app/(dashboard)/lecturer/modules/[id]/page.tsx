@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MessageSquare } from "lucide-react";
+import { ArrowLeft, Plus, MessageSquare, Lock } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -193,7 +193,7 @@ export default function ModuleHub() {
                   return <TableRow key={s.id}>
                     <TableCell>{s.name}</TableCell><TableCell>{g?.assignmentMarks ?? "—"}</TableCell><TableCell>{g?.quizMarks ?? "—"}</TableCell>
                     <TableCell>{ca}</TableCell>
-                    <TableCell className="text-muted-foreground">🔒 Awaiting HOD</TableCell>
+                    <TableCell className="text-muted-foreground"><span className="inline-flex items-center gap-1.5"><Lock className="size-3.5" /> Awaiting HOD</span></TableCell>
                     <TableCell className="font-semibold">{g?.grade ?? "—"}</TableCell>
                   </TableRow>;
                 })}

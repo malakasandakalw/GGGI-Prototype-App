@@ -61,7 +61,7 @@ export default function OLCatalog() {
         <div className="lg:col-span-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((c) => (
             <Card key={c.id} className="overflow-hidden p-0 hover:shadow-md transition-shadow">
-              <div className="h-24 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center"><Globe className="size-8 text-white/80" /></div>
+              <div className="h-24 bg-muted border-b flex items-center justify-center"><Globe className="size-8 text-muted-foreground" /></div>
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-center justify-between"><StatusBadge status={c.difficulty} /><StatusBadge status={c.pricing} /></div>
                 <p className="font-semibold leading-tight">{c.title}</p>

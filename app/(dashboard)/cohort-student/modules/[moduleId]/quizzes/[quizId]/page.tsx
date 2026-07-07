@@ -138,7 +138,7 @@ export default function QuizAttempt() {
         <PageHeader title="Quiz Submitted" description={quiz.title} />
         <Card className="max-w-2xl"><CardContent className="pt-6 space-y-4">
           <div className="text-center">
-            <p className="text-4xl font-bold">{finalScore}<span className="text-xl text-muted-foreground">/{quiz.totalMarks}</span></p>
+            <p className="font-heading text-3xl font-bold tabular-nums">{finalScore}<span className="text-lg font-normal text-muted-foreground">/{quiz.totalMarks}</span></p>
             <p className="text-sm text-muted-foreground mt-1">Auto-graded score</p>
             <p className="text-xs text-muted-foreground mt-1">Attempt {attemptsUsed} of {quiz.allowedAttempts}</p>
           </div>

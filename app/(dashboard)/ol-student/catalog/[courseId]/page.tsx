@@ -48,11 +48,11 @@ export default function OLCourseDetail() {
       <Button variant="ghost" size="sm" className="mb-2" onClick={() => router.push("/ol-student/catalog")}><ArrowLeft className="size-4" /> Back to catalog</Button>
 
       <Card className="mb-6 overflow-hidden p-0">
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-8">
+        <div className="bg-muted/40 border-b p-8">
           <div className="flex gap-2 mb-3"><StatusBadge status={course.difficulty} /><StatusBadge status={course.pricing} /></div>
-          <h1 className="text-2xl font-bold">{course.title}</h1>
-          <p className="text-emerald-50 mt-2 max-w-2xl">{course.description}</p>
-          <p className="text-sm text-emerald-100 mt-3">{course.category} · {course.estimatedHours} hours</p>
+          <h1 className="text-2xl font-bold tracking-tight">{course.title}</h1>
+          <p className="text-muted-foreground mt-2 max-w-2xl">{course.description}</p>
+          <p className="text-sm text-muted-foreground mt-3">{course.category} · {course.estimatedHours} hours</p>
         </div>
       </Card>
 

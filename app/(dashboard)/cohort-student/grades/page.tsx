@@ -53,7 +53,7 @@ export default function CohortGrades() {
       </Tabs>
 
       <Card className="mt-6"><CardContent className="pt-6 flex flex-wrap items-center justify-between gap-3">
-        <div><p className="text-sm text-muted-foreground">Cumulative GPA (CGPA)</p><p className="text-4xl font-bold">{cgpa.toFixed(2)}</p></div>
+        <div><p className="text-sm text-muted-foreground">Cumulative GPA (CGPA)</p><p className="font-heading text-3xl font-bold tabular-nums">{cgpa.toFixed(2)}</p></div>
         <div className="text-right"><p className="text-sm text-muted-foreground mb-1">Academic Class</p><Badge variant="ghost" className={cls.tone}>{cls.label}</Badge></div>
       </CardContent></Card>
     </div>

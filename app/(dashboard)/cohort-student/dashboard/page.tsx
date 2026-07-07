@@ -34,10 +34,10 @@ export default function CohortDashboard() {
 
   return (
     <div>
-      <Card className="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0">
+      <Card className="mb-6 border-primary/20 bg-primary/5">
         <CardContent className="py-6">
-          <h2 className="text-xl font-bold">Welcome back, {currentUser?.name}</h2>
-          <p className="text-sm text-blue-100 mt-1">{program?.name} · {intakeLabel} · {sem?.name}</p>
+          <h2 className="text-xl font-bold tracking-tight">Welcome back, {currentUser?.name}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{program?.name} · {intakeLabel} · {sem?.name}</p>
         </CardContent>
       </Card>
 

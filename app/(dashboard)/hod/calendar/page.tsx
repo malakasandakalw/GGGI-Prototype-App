@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { CalendarView, eventColors } from "@/components/shared/CalendarView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,7 +111,7 @@ export default function HODCalendar() {
               </div>
             )}
             <div className="space-y-1.5"><Label className="text-xs">Special Instructions</Label><Textarea value={instr} onChange={(e) => setInstr(e.target.value)} /></div>
-            {clash && <Alert className="bg-amber-50 border-amber-200"><AlertDescription>⚠ Clash detected: {clash.title} is already scheduled on this date for this module.</AlertDescription></Alert>}
+            {clash && <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"><AlertTriangle className="size-4" /><AlertDescription>Clash detected: {clash.title} is already scheduled on this date for this module.</AlertDescription></Alert>}
           </div>
           <DialogFooter><Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button disabled={!title || !date} onClick={save}>Add Event</Button></DialogFooter>
         </DialogContent>

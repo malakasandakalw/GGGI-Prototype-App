@@ -19,14 +19,14 @@ export function SidebarNav() {
   const pendingQuizzes = quizzes.filter((q) => q.status === "submitted").length;
 
   return (
-    <aside className="w-60 shrink-0 bg-card border-r flex flex-col h-screen sticky top-0">
-      <div className="px-5 py-5 border-b">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="size-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
+    <aside className="w-60 shrink-0 bg-card border-r border-border/60 shadow-sm flex flex-col h-screen sticky top-0 z-40">
+      <div className="px-5 py-5 border-b border-border/60">
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className="size-9 rounded-xl bg-linear-to-br from-primary to-[color-mix(in_oklch,var(--primary),#000_22%)] text-primary-foreground flex items-center justify-center shadow-sm ring-1 ring-white/10">
             <GraduationCap className="size-5" />
           </div>
           <div className="leading-tight">
-            <p className="font-semibold text-sm">University LMS</p>
+            <p className="font-heading font-semibold text-sm tracking-tight">University LMS</p>
             <p className="text-[11px] text-muted-foreground">{roleLabels[currentRole]}</p>
           </div>
         </div>
@@ -42,10 +42,15 @@ export function SidebarNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
-                active ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                "group relative flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                active
+                  ? "bg-primary text-primary-foreground font-medium"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
+              {active && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary-foreground/70" />
+              )}
               <Icon className="size-4 shrink-0" />
               <span className="flex-1 truncate">{item.label}</span>
               {item.badge && count > 0 && (

@@ -18,7 +18,7 @@ function Grid({ rows, olCourses, users }: { rows: OLEnrollment[]; olCourses: OLC
         if (!c) return null;
         return (
           <Card key={e.courseId} className="overflow-hidden p-0">
-            <div className="h-20 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white/80 text-xs">{c.category}</div>
+            <div className="h-20 bg-muted border-b flex items-center justify-center text-muted-foreground text-xs">{c.category}</div>
             <CardContent className="p-4 space-y-2">
               <p className="font-semibold leading-tight">{c.title}</p>
               <p className="text-xs text-muted-foreground">{lecturerName(c.lecturerId)}</p>

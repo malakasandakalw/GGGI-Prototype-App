@@ -76,7 +76,7 @@ export default function HODOpenLearning() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {myCourses.map((c) => (
           <Card key={c.id} className="overflow-hidden p-0">
-            <div className="h-20 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center"><Globe className="size-7 text-white/80" /></div>
+            <div className="h-20 bg-muted border-b flex items-center justify-center"><Globe className="size-7 text-muted-foreground" /></div>
             <CardContent className="p-4 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <Badge variant="secondary" className="text-[10px]">{c.category}</Badge>
