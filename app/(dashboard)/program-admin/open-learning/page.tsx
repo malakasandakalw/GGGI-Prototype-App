@@ -130,7 +130,7 @@ export default function ProgramAdminOL() {
         open={!!assignedInfo}
         onOpenChange={(o) => !o && setAssignedInfo(null)}
         title="Lecturer assigned"
-        description={<><strong>{assignedInfo?.lecturer}</strong> is now the assigned lecturer for <strong>{assignedInfo?.course}</strong>. They can build and manage the course content; the HOD verifies it and the Super Admin publishes it to the public catalog.</>}
+        description={<><strong>{assignedInfo?.lecturer}</strong> is now the assigned lecturer for <strong>{assignedInfo?.course}</strong>. They build, manage and <strong>publish</strong> the course content directly to the catalog — they&apos;re responsible for ensuring it&apos;s correct.</>}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Users, BookMarked, ClipboardList, Globe, GraduationCap, UserCheck, CheckCircle, ArrowLeftRight } from "lucide-react";
 import { StatCard } from "@/components/shared/StatCard";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearChip } from "@/components/shared/AcademicYearChip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store/provider";
@@ -15,7 +16,7 @@ export default function SuperAdminDashboard() {
 
   return (
     <div>
-      <PageHeader title="System Overview" description="Institution-wide health and activity at a glance." />
+      <PageHeader title="System Overview" description="Institution-wide health and activity at a glance."><AcademicYearChip /></PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Users" value={users.length} icon={Users} />
@@ -27,7 +28,7 @@ export default function SuperAdminDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-4">
         <StatCard title="Cohort Students" value={users.filter((u) => u.role === "cohort-student").length} icon={GraduationCap} />
         <StatCard title="OL Students" value={users.filter((u) => u.role === "ol-student").length} icon={UserCheck} />
-        <StatCard title="Lectures Pending Verification" value={lectures.filter((l) => l.status === "submitted").length} icon={CheckCircle} variant="warning" />
+        <StatCard title="Lectures Published" value={lectures.filter((l) => l.status === "published").length} icon={CheckCircle} variant="success" />
         <StatCard title="Cross-Enrollments Pending" value={crossEnrollments.filter((c) => c.status === "pending").length} icon={ArrowLeftRight} variant="warning" />
       </div>
 

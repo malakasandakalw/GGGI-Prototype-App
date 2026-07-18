@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { Eye, Lock } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useYearScope } from "@/hooks/use-year-scope";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -17,22 +19,32 @@ import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { useStore } from "@/lib/store/provider";
+import { isStudentRole } from "@/lib/utils/student-access";
 import type { User } from "@/lib/types";
 
 export default function ProgramAdminResults() {
   const { currentUser, programs, modules, users, moduleGrades } = useStore();
+  const { isModuleInYear } = useYearScope();
   const myPrograms = programs.filter((p) => currentUser?.programIds?.includes(p.id));
   const myProgramIds = myPrograms.map((p) => p.id);
   const [program, setProgram] = useState(myProgramIds[0] ?? "all");
   const [view, setView] = useState<User | null>(null);
 
-  const students = users.filter(
-    (u) => u.role === "cohort-student" && u.programId && myProgramIds.includes(u.programId) && (program === "all" || u.programId === program),
-  );
+  // Enrollment-based: the programme's own students PLUS any student (incl. cross-enrolled
+  // Open Learning learners) taking a module owned by the scoped programme(s).
+  const scopedProgramIds = program === "all" ? myProgramIds : [program];
+  const scopedModuleIds = new Set(modules.filter((m) => scopedProgramIds.includes(m.programId)).map((m) => m.id));
+  const students = users.filter((u) => {
+    if (!isStudentRole(u.role)) return false;
+    const isHome = !!u.programId && scopedProgramIds.includes(u.programId);
+    const isCrossEnrolled = !!u.crossEnrolledModuleIds?.some((id) => scopedModuleIds.has(id));
+    return isHome || isCrossEnrolled;
+  });
   const programName = (id?: string) => programs.find((p) => p.id === id)?.name ?? "—";
   const moduleName = (id: string) => { const m = modules.find((x) => x.id === id); return m ? `${m.code} — ${m.name}` : id; };
 
-  const studentGrades = (sid: string) => moduleGrades.filter((g) => g.studentId === sid && g.published);
+  // Scoped to the active academic year's module offerings (GPA shown is for that year).
+  const studentGrades = (sid: string) => moduleGrades.filter((g) => g.studentId === sid && g.published && isModuleInYear(g.moduleId));
   const cgpa = (sid: string) => {
     const gs = studentGrades(sid);
     return gs.length ? (gs.reduce((s, g) => s + g.gradePoint, 0) / gs.length).toFixed(2) : "—";
@@ -40,7 +52,9 @@ export default function ProgramAdminResults() {
 
   return (
     <div>
-      <PageHeader title="Student Results" description="Read-only view of published student results within your programs." />
+      <PageHeader title="Student Results" description="Read-only view of published student results within your programs.">
+        <AcademicYearSelect />
+      </PageHeader>
 
       <Alert className="mb-4">
         <Lock className="size-4" />
@@ -59,7 +73,7 @@ export default function ProgramAdminResults() {
 
       <Card className="p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Student</TableHead><TableHead>Student ID</TableHead><TableHead>Program</TableHead><TableHead>Modules Graded</TableHead><TableHead>CGPA</TableHead><TableHead /></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Student</TableHead><TableHead>Student ID</TableHead><TableHead>Program</TableHead><TableHead>Modules Graded</TableHead><TableHead>GPA (Year)</TableHead><TableHead /></TableRow></TableHeader>
           <TableBody>
             {students.map((s) => (
               <TableRow key={s.id}>
@@ -82,7 +96,7 @@ export default function ProgramAdminResults() {
             <>
               <SheetHeader>
                 <SheetTitle>{view.name}</SheetTitle>
-                <SheetDescription>{view.studentId} · {programName(view.programId)} · CGPA {cgpa(view.id)}</SheetDescription>
+                <SheetDescription>{view.studentId} · {programName(view.programId)} · GPA (Year) {cgpa(view.id)}</SheetDescription>
               </SheetHeader>
               <div className="px-4 pb-6 space-y-3 text-sm">
                 <p className="font-medium">Module Results</p>

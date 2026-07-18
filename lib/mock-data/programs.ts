@@ -18,6 +18,7 @@ export const programs: Program[] = [
       {
         id: "sem-cs-1",
         programId: "p-cs",
+        academicYearId: "ay-2024",
         name: "Year 1 - Semester 1",
         year: 1,
         semesterNumber: 1,
@@ -29,6 +30,7 @@ export const programs: Program[] = [
       {
         id: "sem-cs-2",
         programId: "p-cs",
+        academicYearId: "ay-2026",
         name: "Year 1 - Semester 2",
         year: 1,
         semesterNumber: 2,
@@ -56,6 +58,7 @@ export const programs: Program[] = [
       {
         id: "sem-it-1",
         programId: "p-it",
+        academicYearId: "ay-2026",
         name: "Year 1 - Semester 1",
         year: 1,
         semesterNumber: 1,
@@ -85,6 +88,7 @@ export const programs: Program[] = [
       {
         id: "sem-bus-1",
         programId: "p-bus",
+        academicYearId: "ay-2026",
         name: "Year 1 - Semester 1",
         year: 1,
         semesterNumber: 1,
@@ -101,6 +105,7 @@ export const intakes: Intake[] = [
   {
     id: "in-cs-2024",
     programId: "p-cs",
+    academicYearId: "ay-2024",
     label: "2024 Intake",
     applicationOpenDate: "2023-10-01",
     applicationCloseDate: "2023-12-31",
@@ -112,6 +117,7 @@ export const intakes: Intake[] = [
   {
     id: "in-cs-2026",
     programId: "p-cs",
+    academicYearId: "ay-2026",
     label: "2026 Intake",
     applicationOpenDate: "2025-10-01",
     applicationCloseDate: "2026-08-31",
@@ -123,12 +129,13 @@ export const intakes: Intake[] = [
   {
     id: "in-it-2026",
     programId: "p-it",
+    academicYearId: "ay-2026",
     label: "2026 Intake",
     applicationOpenDate: "2025-10-01",
     applicationCloseDate: "2026-08-31",
     maxCapacity: 80,
     academicStartDate: "2026-09-01",
     status: "open",
-    enrolledStudentIds: [],
+    enrolledStudentIds: ["u-st6", "u-st7", "u-st8"],
   },
 ];

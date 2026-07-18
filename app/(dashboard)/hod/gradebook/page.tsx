@@ -2,10 +2,13 @@
 
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useYearScope } from "@/hooks/use-year-scope";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -13,25 +16,33 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/lib/store/provider";
+import { studentsInModule } from "@/lib/utils/student-access";
 import type { Module, ModuleGrade } from "@/lib/types";
 
 export default function HODGradebook() {
   const { currentUser, modules, programs, users, moduleGrades, updateGrade } = useStore();
-  const myModules = modules.filter((m) => m.status === "active" && programs.find((p) => p.id === m.programId)?.department === currentUser?.department);
-  const students = users.filter((u) => u.role === "cohort-student");
+  const { isModuleInYear, activeAcademicYear } = useYearScope();
+  const myModules = modules.filter((m) => m.status === "active" && isModuleInYear(m.id) && programs.find((p) => p.id === m.programId)?.department === currentUser?.department);
 
-  if (myModules.length === 0) return <div><PageHeader title="Gradebook" /><p className="text-muted-foreground">No active modules.</p></div>;
+  if (myModules.length === 0) {
+    return (
+      <div>
+        <PageHeader title="Gradebook" description="Enter final examination marks and manage grades."><AcademicYearSelect /></PageHeader>
+        <EmptyState title="No modules for this academic year" description={`No active modules ran in ${activeAcademicYear?.label ?? "this year"}. Switch the academic year to enter grades for another year.`} />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <PageHeader title="Gradebook" description="Enter final examination marks and manage grades." />
+      <PageHeader title="Gradebook" description="Enter final examination marks and manage grades."><AcademicYearSelect /></PageHeader>
       <Tabs defaultValue={myModules[0].id}>
         <TabsList className="flex-wrap h-auto">
           {myModules.map((m) => <TabsTrigger key={m.id} value={m.id}>{m.code}</TabsTrigger>)}
         </TabsList>
         {myModules.map((m) => (
           <TabsContent key={m.id} value={m.id}>
-            <ModuleGradeTable module={m} students={students} grades={moduleGrades} onUpdate={updateGrade} />
+            <ModuleGradeTable module={m} students={studentsInModule(users, programs, m.id)} grades={moduleGrades} onUpdate={updateGrade} />
           </TabsContent>
         ))}
       </Tabs>

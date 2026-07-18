@@ -71,6 +71,11 @@ export function RoleSwitcher() {
               {currentRole === r && <span className="text-xs text-primary ml-2">(current)</span>}
             </button>
           ))}
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+            Cohort and Open Learning students share one unified experience — an Open Learning student who
+            cross-enrolls into a module gains full cohort access (modules, assignments, quizzes, grades) while
+            keeping their Open Learning courses.
+          </p>
         </div>
       </SheetContent>
     </Sheet>

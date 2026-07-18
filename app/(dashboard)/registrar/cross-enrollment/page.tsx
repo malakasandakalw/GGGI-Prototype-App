@@ -19,7 +19,9 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { InfoDialog } from "@/components/shared/InfoDialog";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
 import { useStore } from "@/lib/store/provider";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { formatDate } from "@/lib/utils/date";
 import type { CrossEnrollmentRequest } from "@/lib/types";
 
@@ -31,6 +33,10 @@ const typeLabel: Record<string, string> = {
 
 export default function RegistrarCrossEnrollment() {
   const { crossEnrollments, modules, olCourses, updateCrossEnrollment, addNotification } = useStore();
+  const { isModuleInYear } = useYearScope();
+  // Scope cohort-bound requests to the active year's module offerings; OL targets (no
+  // module year) always show.
+  const scoped = crossEnrollments.filter((c) => (c.targetModuleId ? isModuleInYear(c.targetModuleId) : true));
   const [process, setProcess] = useState<CrossEnrollmentRequest | null>(null);
   const [payment, setPayment] = useState("pending");
   const [notes, setNotes] = useState("");
@@ -86,16 +92,18 @@ export default function RegistrarCrossEnrollment() {
 
   return (
     <div>
-      <PageHeader title="Cross-Enrollment Requests" description="Process cross-stream and cross-program requests." />
+      <PageHeader title="Cross-Enrollment Requests" description="Process cross-stream and cross-program requests.">
+        <AcademicYearSelect />
+      </PageHeader>
       <Tabs defaultValue="pending">
         <TabsList>
           <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="c2c">Cohort → Cohort</TabsTrigger>
           <TabsTrigger value="ol2c">OL → Cohort</TabsTrigger>
         </TabsList>
-        <TabsContent value="pending">{renderTbl(crossEnrollments.filter((c) => c.status === "pending"))}</TabsContent>
-        <TabsContent value="c2c">{renderTbl(crossEnrollments.filter((c) => c.type === "cohort-to-cohort"))}</TabsContent>
-        <TabsContent value="ol2c">{renderTbl(crossEnrollments.filter((c) => c.type === "ol-to-cohort"))}</TabsContent>
+        <TabsContent value="pending">{renderTbl(scoped.filter((c) => c.status === "pending"))}</TabsContent>
+        <TabsContent value="c2c">{renderTbl(scoped.filter((c) => c.type === "cohort-to-cohort"))}</TabsContent>
+        <TabsContent value="ol2c">{renderTbl(scoped.filter((c) => c.type === "ol-to-cohort"))}</TabsContent>
       </Tabs>
 
       <Dialog open={!!process} onOpenChange={(o) => !o && setProcess(null)}>

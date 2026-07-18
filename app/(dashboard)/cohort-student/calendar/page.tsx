@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store/provider";
+import { useYearScope } from "@/hooks/use-year-scope";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
 import { formatDate } from "@/lib/utils/date";
 import type { CalendarEvent } from "@/lib/types";
 
@@ -39,6 +41,7 @@ function Legend() {
 
 export default function CohortCalendar() {
   const { currentUser, programs, modules, calendarEvents } = useStore();
+  const { isModuleInYear, inYear } = useYearScope();
   const program = programs.find((p) => p.id === currentUser?.programId);
   const sem = program?.semesters.find((s) => s.id === currentUser?.currentSemesterId);
   const myModules = modules.filter((m) => sem?.moduleIds.includes(m.id) || currentUser?.crossEnrolledModuleIds?.includes(m.id));
@@ -58,6 +61,8 @@ export default function CohortCalendar() {
     if (moduleFilter !== "all" && e.moduleId !== moduleFilter) return false;
     if (semesterModuleIds && !(e.moduleId && semesterModuleIds.includes(e.moduleId))) return false;
     if (fromDate && e.date < fromDate) return false;
+    // scope to the active academic year
+    if (e.academicYearId ? !inYear(e.academicYearId) : e.moduleId ? !isModuleInYear(e.moduleId) : false) return false;
     // scope to the student's modules / program
     return !e.moduleId || myModules.some((m) => m.id === e.moduleId) || e.programId === program?.id;
   });
@@ -75,6 +80,7 @@ export default function CohortCalendar() {
   return (
     <div>
       <PageHeader title="Exam Calendar" description="All events for your enrolled modules.">
+        <AcademicYearSelect />
         <Tabs value={view} onValueChange={setView}>
           <TabsList>
             <TabsTrigger value="month">Month</TabsTrigger>

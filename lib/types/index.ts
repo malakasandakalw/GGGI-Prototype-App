@@ -33,6 +33,32 @@ export interface User {
   tempPassword?: string;
 }
 
+// Program Clerk — an application-management account the Registrar creates per programme.
+// Standalone record (no auth Role / login), managed entirely under the Registrar.
+export interface Clerk {
+  id: string;
+  name: string;
+  email: string;
+  programId: string;
+  status: "active" | "inactive";
+  createdAt: string;
+  tempPassword?: string;
+}
+
+// Academic Year (real-world calendar year, e.g. "2026/2027"). Top-level scope that
+// programmes, semesters, intakes, exams and results are grouped under. NOTE: this is
+// distinct from Semester.year, which is the *study level* (Year 1/2/3/4 of a programme).
+export type AcademicYearStatus = "planning" | "active" | "archived";
+
+export interface AcademicYear {
+  id: string;
+  label: string; // "2026/2027"
+  startDate: string;
+  endDate: string;
+  status: AcademicYearStatus;
+  isCurrent: boolean;
+}
+
 // Programs & Academic Structure
 export type ProgramStatus = "draft" | "submitted" | "approved" | "active" | "archived";
 export type ProgramLevel = "certificate" | "diploma" | "hnd" | "degree" | "postgraduate";
@@ -56,7 +82,10 @@ export interface Program {
 export interface Semester {
   id: string;
   programId: string;
+  /** Calendar academic year this semester runs in (e.g. "ay-2026" → "2026/2027"). */
+  academicYearId?: string;
   name: string;
+  /** Study level within the programme (Year 1/2/3/4) — NOT the calendar academic year. */
   year: number;
   semesterNumber: number;
   startDate: string;
@@ -68,6 +97,8 @@ export interface Semester {
 export interface Intake {
   id: string;
   programId: string;
+  /** Calendar academic year this intake belongs to. */
+  academicYearId?: string;
   label: string;
   applicationOpenDate: string;
   applicationCloseDate: string;
@@ -104,7 +135,8 @@ export interface Module {
 }
 
 // Lectures
-export type LectureStatus = "draft" | "submitted" | "verified" | "published" | "archived";
+// Lecturers publish lectures directly — no HOD verification step.
+export type LectureStatus = "draft" | "published" | "archived";
 
 export interface Resource {
   id: string;
@@ -161,11 +193,16 @@ export interface Application {
   qualifications: string;
   documents: string[];
   status: ApplicationStatus;
+  /** Calendar academic year of the intake being applied to. */
+  academicYearId?: string;
   submittedAt: string;
   registrarNotes: string;
   rejectionReason?: string;
   paymentReference?: string;
   paymentConfirmedAt?: string;
+  /** Simulated payment-reminder emails sent by the Registrar. */
+  paymentReminderCount?: number;
+  lastPaymentReminderAt?: string;
   history: ApplicationStatusEvent[];
 }
 
@@ -176,7 +213,8 @@ export type QuestionType =
   | "true-false"
   | "short-answer"
   | "fill-blank";
-export type QuizStatus = "draft" | "submitted" | "verified" | "active" | "closed";
+// Lecturers publish quizzes directly — no HOD verification step.
+export type QuizStatus = "draft" | "active" | "closed";
 
 export interface Question {
   id: string;
@@ -388,6 +426,8 @@ export interface CalendarEvent {
   type: CalendarEventType;
   title: string;
   date: string;
+  /** Calendar academic year this event belongs to. */
+  academicYearId?: string;
   programId?: string;
   moduleId?: string;
   startTime?: string;
@@ -453,5 +493,4 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   href: string;
-  badge?: "pending-lectures" | "pending-quizzes";
 }

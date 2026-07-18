@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Eye, Lock } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
 import { Card } from "@/components/ui/card";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,12 +24,13 @@ import type { Module } from "@/lib/types";
 
 export default function ProgramAdminModules() {
   const { currentUser, programs, modules, lectures, users } = useStore();
+  const { isModuleInYear } = useYearScope();
   const myPrograms = programs.filter((p) => currentUser?.programIds?.includes(p.id));
   const myProgramIds = myPrograms.map((p) => p.id);
   const [program, setProgram] = useState("all");
   const [view, setView] = useState<Module | null>(null);
 
-  const scoped = modules.filter((m) => myProgramIds.includes(m.programId));
+  const scoped = modules.filter((m) => myProgramIds.includes(m.programId) && isModuleInYear(m.id));
   const filtered = program === "all" ? scoped : scoped.filter((m) => m.programId === program);
 
   const programName = (id: string) => programs.find((p) => p.id === id)?.name ?? "—";
@@ -36,7 +39,9 @@ export default function ProgramAdminModules() {
 
   return (
     <div>
-      <PageHeader title="Modules" description="Read-only oversight of module content, lecturer assignments and lectures across your programs." />
+      <PageHeader title="Modules" description="Read-only oversight of module content, lecturer assignments and lectures across your programs.">
+        <AcademicYearSelect />
+      </PageHeader>
 
       <Alert className="mb-4">
         <Lock className="size-4" />

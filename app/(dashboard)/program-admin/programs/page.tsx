@@ -25,12 +25,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { InfoDialog } from "@/components/shared/InfoDialog";
+import { ArchivedYearBanner } from "@/components/shared/ArchivedYearBanner";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { useStore } from "@/lib/store/provider";
 import { formatDate } from "@/lib/utils/date";
 import type { Program } from "@/lib/types";
 
 export default function ProgramAdminPrograms() {
-  const { currentUser, programs, modules, users, intakes, updateProgram, addIntake, addNotification } = useStore();
+  const { currentUser, programs, modules, users, intakes, activeAcademicYear, updateProgram, addIntake, addNotification } = useStore();
+  const { activeYearEditable } = useYearScope();
   const myPrograms = programs.filter((p) => currentUser?.programIds?.includes(p.id));
   const pending = myPrograms.filter((p) => p.status === "submitted");
   const [review, setReview] = useState<Program | null>(null);
@@ -94,7 +97,7 @@ export default function ProgramAdminPrograms() {
       <TableCell><StatusBadge status={p.status} /></TableCell>
       <TableCell className="text-right space-x-2">
         {p.status === "active" && (
-          <Button size="sm" variant="outline" onClick={() => openIntakeFor(p)}>Open Intake</Button>
+          <Button size="sm" variant="outline" disabled={!activeYearEditable} onClick={() => openIntakeFor(p)}>Open Intake</Button>
         )}
         <Button size="sm" variant={p.status === "submitted" ? "default" : "outline"} onClick={() => { setReview(p); setShowReturn(false); }}>
           {p.status === "submitted" ? "Review" : "View"}
@@ -106,6 +109,7 @@ export default function ProgramAdminPrograms() {
   return (
     <div>
       <PageHeader title="Programs" description="Review programs submitted by HODs and manage their lifecycle." />
+      <ArchivedYearBanner />
       <Tabs defaultValue="all">
         <TabsList>
           <TabsTrigger value="all">All Programs</TabsTrigger>
@@ -175,7 +179,7 @@ export default function ProgramAdminPrograms() {
                   <div className="pt-2 border-t space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">Application Intakes</p>
-                      <Button size="sm" variant="outline" onClick={() => openIntakeFor(review)}>Open Intake</Button>
+                      <Button size="sm" variant="outline" disabled={!activeYearEditable} onClick={() => openIntakeFor(review)}>Open Intake</Button>
                     </div>
                     {intakes.filter((i) => i.programId === review.id).map((i) => (
                       <div key={i.id} className="flex items-center justify-between rounded border p-2 text-sm">
@@ -213,6 +217,7 @@ export default function ProgramAdminPrograms() {
           <DialogHeader><DialogTitle>Open Application Intake</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground -mt-2">{intakeFor?.name}</p>
           <div className="space-y-4">
+            <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Academic Year: <span className="font-medium text-foreground">{activeAcademicYear?.label}</span> — this intake and its applications belong to the active year.</div>
             <div className="space-y-1.5"><Label className="text-xs">Intake Label</Label><Input value={inLabel} onChange={(e) => setInLabel(e.target.value)} placeholder="e.g. 2027 Intake" /></div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5"><Label className="text-xs">Applications Open</Label><Input type="date" value={inOpen} onChange={(e) => setInOpen(e.target.value)} /></div>

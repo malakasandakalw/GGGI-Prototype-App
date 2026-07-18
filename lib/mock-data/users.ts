@@ -146,6 +146,46 @@ export const users: User[] = [
     currentSemesterId: "sem-cs-2",
     lastLogin: "2026-06-15T08:00:00Z",
   },
+  // HND IT cohort students (2026 intake) — gives a second programme + account-status variety for reports.
+  {
+    id: "u-st6",
+    name: "Ashen Perera",
+    email: "ashen.p@student.lms.ac.lk",
+    role: "cohort-student",
+    status: "active",
+    createdAt: "2026-02-01T08:00:00Z",
+    studentId: "IT2026001",
+    programId: "p-it",
+    intakeId: "in-it-2026",
+    currentSemesterId: "sem-it-1",
+    lastLogin: "2026-07-15T10:00:00Z",
+  },
+  {
+    id: "u-st7",
+    name: "Nipuni Silva",
+    email: "nipuni.s@student.lms.ac.lk",
+    role: "cohort-student",
+    status: "suspended",
+    createdAt: "2026-02-01T08:00:00Z",
+    studentId: "IT2026002",
+    programId: "p-it",
+    intakeId: "in-it-2026",
+    currentSemesterId: "sem-it-1",
+    lastLogin: "2026-05-20T09:00:00Z",
+  },
+  {
+    id: "u-st8",
+    name: "Kavindu Rathnayake",
+    email: "kavindu.r@student.lms.ac.lk",
+    role: "cohort-student",
+    status: "inactive",
+    createdAt: "2026-02-01T08:00:00Z",
+    studentId: "IT2026003",
+    programId: "p-it",
+    intakeId: "in-it-2026",
+    currentSemesterId: "sem-it-1",
+    lastLogin: "2026-03-10T09:00:00Z",
+  },
   // OL students
   {
     id: "u-ol1",
@@ -154,7 +194,9 @@ export const users: User[] = [
     role: "ol-student",
     status: "active",
     createdAt: "2025-09-01T08:00:00Z",
-    crossEnrolledModuleIds: [],
+    // Demo: an Open Learning student who has cross-enrolled into a cohort module — she keeps her
+    // OL courses AND gains the full cohort experience for CS101 (unified student model).
+    crossEnrolledModuleIds: ["m-cs101"],
   },
   {
     id: "u-ol2",

@@ -5,9 +5,12 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { InfoDialog } from "@/components/shared/InfoDialog";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useYearScope } from "@/hooks/use-year-scope";
 import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
@@ -21,7 +24,8 @@ const BRACKETS = ["A", "B", "C", "D", "F"];
 
 export default function HODResults() {
   const { currentUser, modules, programs, users, moduleGrades, publishResults } = useStore();
-  const myModules = modules.filter((m) => m.status === "active" && programs.find((p) => p.id === m.programId)?.department === currentUser?.department);
+  const { isModuleInYear, activeAcademicYear } = useYearScope();
+  const myModules = modules.filter((m) => m.status === "active" && isModuleInYear(m.id) && programs.find((p) => p.id === m.programId)?.department === currentUser?.department);
   const [confirm, setConfirm] = useState<Module | null>(null);
   const [review, setReview] = useState<Module | null>(null);
   const [published, setPublished] = useState<string | null>(null);
@@ -44,12 +48,17 @@ export default function HODResults() {
   return (
     <div>
       <PageHeader title="Results" description="Review and publish module results to students.">
+        <AcademicYearSelect />
         {readyCount > 0 && (
           <Button onClick={() => { myModules.filter((m) => statusOf(m) === "Ready to Publish").forEach((m) => publishResults(m.id)); toast.success("All eligible modules published"); }}>
             Publish All Eligible ({readyCount})
           </Button>
         )}
       </PageHeader>
+
+      {myModules.length === 0 && (
+        <EmptyState title="No modules for this academic year" description={`No active modules ran in ${activeAcademicYear?.label ?? "this year"}. Switch the academic year to view other results.`} />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {myModules.map((m) => {

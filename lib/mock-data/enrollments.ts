@@ -35,4 +35,16 @@ export const crossEnrollmentRequests: CrossEnrollmentRequest[] = [
     registrarNotes: "Free course — auto approved.",
     paymentStatus: "confirmed",
   },
+  {
+    id: "ce-4",
+    studentId: "u-ol1",
+    studentName: "Ishara Madushani",
+    type: "ol-to-cohort",
+    targetModuleId: "m-cs101",
+    reason: "I want formal credit for Introduction to Programming alongside my Open Learning courses.",
+    status: "approved",
+    requestedAt: "2026-05-02T09:00:00Z",
+    registrarNotes: "Approved — payment confirmed. Student now has full cohort access to CS101.",
+    paymentStatus: "confirmed",
+  },
 ];

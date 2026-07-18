@@ -2,11 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
+import { toast } from "sonner";
+import { MoreHorizontal, Mail } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
 import { Button } from "@/components/ui/button";
+import { useYearScope } from "@/hooks/use-year-scope";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -24,16 +27,23 @@ const QUICK_STATUSES: ApplicationStatus[] = ["under-review", "payment-pending", 
 
 export default function ApplicationsPage() {
   const router = useRouter();
-  const { applications, programs, updateApplication } = useStore();
+  const { applications, programs, updateApplication, sendPaymentReminder } = useStore();
+  const { activeAcademicYearId } = useYearScope();
   const [program, setProgram] = useState("all");
   const [status, setStatus] = useState("all");
 
   const programName = (id: string) => programs.find((p) => p.id === id)?.name ?? "—";
 
   const filtered = useMemo(
-    () => applications.filter((a) => (program === "all" || a.programId === program) && (status === "all" || a.status === status)),
-    [applications, program, status],
+    () => applications.filter((a) => a.academicYearId === activeAcademicYearId && (program === "all" || a.programId === program) && (status === "all" || a.status === status)),
+    [applications, program, status, activeAcademicYearId],
   );
+
+  const awaitingPayment = filtered.filter((a) => a.status === "payment-pending");
+  function remindAll() {
+    awaitingPayment.forEach((a) => sendPaymentReminder(a.id));
+    toast.success(`Payment reminder emailed to ${awaitingPayment.length} applicant${awaitingPayment.length === 1 ? "" : "s"} (simulated)`);
+  }
 
   const columns: Column<Application>[] = [
     { key: "referenceNumber", header: "Ref #", render: (a) => <span className="font-mono text-xs">{a.referenceNumber}</span> },
@@ -48,6 +58,11 @@ export default function ApplicationsPage() {
           <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => router.push(`/registrar/applications/${a.id}`)}>View Application</DropdownMenuItem>
+            {a.status === "payment-pending" && (
+              <DropdownMenuItem onClick={() => { sendPaymentReminder(a.id); toast.success("Payment reminder emailed (simulated)"); }}>
+                <Mail className="size-4" /> Send Payment Reminder
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs">Quick status</DropdownMenuLabel>
             {QUICK_STATUSES.map((s) => (
@@ -63,7 +78,11 @@ export default function ApplicationsPage() {
 
   return (
     <div>
-      <PageHeader title="Applications" description="Review and process student applications." />
+      <PageHeader
+        title="Applications"
+        description="Review and process student applications."
+        action={awaitingPayment.length > 0 ? { label: `Remind All Awaiting Payment (${awaitingPayment.length})`, icon: Mail, onClick: remindAll } : undefined}
+      />
       <DataTable
         columns={columns}
         data={filtered}
@@ -72,6 +91,7 @@ export default function ApplicationsPage() {
         onRowClick={(a) => router.push(`/registrar/applications/${a.id}`)}
         filters={
           <>
+            <AcademicYearSelect />
             <Select value={program} onValueChange={setProgram}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Program" /></SelectTrigger>
               <SelectContent>

@@ -1,22 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { GraduationCap } from "lucide-react";
 import { useStore } from "@/lib/store/provider";
-import { navConfig, roleLabels } from "@/lib/nav-config";
-import { Badge } from "@/components/ui/badge";
+import { navConfig, roleLabels, studentNavItems } from "@/lib/nav-config";
+import { useStudentAccess } from "@/hooks/use-student-access";
+import { isStudentRole } from "@/lib/utils/student-access";
 import { cn } from "@/lib/utils";
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const { currentRole, lectures, quizzes } = useStore();
+  const { currentRole } = useStore();
+  const { hasCohortAccess } = useStudentAccess();
   if (!currentRole) return null;
 
-  const items = navConfig[currentRole];
-  const pendingLectures = lectures.filter((l) => l.status === "submitted").length;
-  const pendingQuizzes = quizzes.filter((q) => q.status === "submitted").length;
+  // Students get one unified, enrollment-driven nav; staff keep their fixed role nav.
+  const items = isStudentRole(currentRole)
+    ? studentNavItems({ role: currentRole, hasCohortAccess })
+    : navConfig[currentRole];
 
   return (
     <aside className="w-60 shrink-0 bg-card border-r border-border/60 shadow-sm flex flex-col h-screen sticky top-0 z-40">
@@ -36,7 +38,6 @@ export function SidebarNav() {
         {items.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
-          const count = item.badge === "pending-lectures" ? pendingLectures : item.badge === "pending-quizzes" ? pendingQuizzes : 0;
           return (
             <Link
               key={item.href}
@@ -53,11 +54,6 @@ export function SidebarNav() {
               )}
               <Icon className="size-4 shrink-0" />
               <span className="flex-1 truncate">{item.label}</span>
-              {item.badge && count > 0 && (
-                <Badge variant="destructive" className="h-5 min-w-5 px-1.5 justify-center">
-                  {count}
-                </Badge>
-              )}
             </Link>
           );
         })}

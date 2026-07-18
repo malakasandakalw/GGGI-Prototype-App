@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Globe, Plus, CheckCircle2, FileQuestion } from "lucide-react";
+import { Globe, Plus, FileQuestion } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { InfoDialog } from "@/components/shared/InfoDialog";
@@ -36,7 +36,6 @@ export default function HODOpenLearning() {
   const [difficulty, setDifficulty] = useState("beginner");
   const [pricing, setPricing] = useState("free");
   const [lecturerId, setLecturerId] = useState(lecturers[0]?.id ?? "");
-  const [verified, setVerified] = useState<Set<string>>(new Set());
   const [published, setPublished] = useState<string | null>(null);
 
   const enrollCount = (id: string) => olEnrollments.filter((e) => e.courseId === id).length;
@@ -62,17 +61,17 @@ export default function HODOpenLearning() {
     toast.success("Course created as draft");
   }
 
-  function verifyAndPublish(c: OLCourse) {
+  function publishCourse(c: OLCourse) {
     updateOLCourse(c.id, { status: "published" });
-    addAudit({ action: "Content Verified", details: `Verified & published OL course "${c.title}"` });
-    toast.success("Course verified & published");
+    addAudit({ action: "Content Published", details: `Published OL course "${c.title}"` });
+    toast.success("Course published");
     setManage(null);
     setPublished(c.title);
   }
 
   return (
     <div>
-      <PageHeader title="Open Learning Courses" description="Create, verify and manage OL courses in your department." action={{ label: "Create Course", icon: Plus, onClick: () => setOpen(true) }} />
+      <PageHeader title="Open Learning Courses" description="Create and manage OL courses in your department." action={{ label: "Create Course", icon: Plus, onClick: () => setOpen(true) }} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {myCourses.map((c) => (
           <Card key={c.id} className="overflow-hidden p-0">
@@ -85,8 +84,8 @@ export default function HODOpenLearning() {
               <p className="font-semibold leading-tight">{c.title}</p>
               <p className="text-xs text-muted-foreground capitalize">{c.difficulty} · {c.pricing} · {enrollCount(c.id)} enrolled</p>
               <div className="flex flex-wrap gap-1.5 pt-1">
-                <Button size="sm" variant="outline" onClick={() => { setVerified(new Set()); setManage(c); }}>Manage</Button>
-                {c.status === "draft" && <Button size="sm" onClick={() => { setVerified(new Set()); setManage(c); }}>Verify &amp; Publish</Button>}
+                <Button size="sm" variant="outline" onClick={() => setManage(c)}>Manage</Button>
+                {c.status === "draft" && <Button size="sm" onClick={() => publishCourse(c)}>Publish</Button>}
                 {c.status !== "archived" && c.status !== "draft" && <Button size="sm" variant="ghost" onClick={() => { updateOLCourse(c.id, { status: "archived" }); toast.success("Archived"); }}>Archive</Button>}
               </div>
             </CardContent>
@@ -140,7 +139,7 @@ export default function HODOpenLearning() {
               <div className="px-4 pb-6 space-y-4">
                 {manage.status === "draft" && (
                   <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-                    Verify each lesson&apos;s content and quizzes below, then publish the course to make it available to Open Learning students.
+                    Review the lesson content and quizzes below, then publish the course to make it available to Open Learning students.
                   </div>
                 )}
                 {manage.sections.length === 0 && <p className="text-sm text-muted-foreground">No sections yet.</p>}
@@ -150,7 +149,6 @@ export default function HODOpenLearning() {
                     <ul className="mt-2 space-y-2 text-sm">
                       {s.lessons.map((l) => {
                         const quiz = l.quizId ? quizzes.find((q) => q.id === l.quizId) : null;
-                        const isVerified = verified.has(l.id);
                         return (
                           <li key={l.id} className="rounded-md border p-2">
                             <div className="flex items-center justify-between">
@@ -158,14 +156,6 @@ export default function HODOpenLearning() {
                                 {l.title}
                                 {l.isSequential && <Badge variant="outline" className="text-[10px]">Sequential</Badge>}
                               </span>
-                              <Button
-                                size="sm"
-                                variant={isVerified ? "ghost" : "outline"}
-                                onClick={() => { setVerified((prev) => new Set(prev).add(l.id)); toast.success(`"${l.title}" verified`); }}
-                                disabled={isVerified}
-                              >
-                                {isVerified ? <><CheckCircle2 className="size-4 text-emerald-600" /> Verified</> : "Verify"}
-                              </Button>
                             </div>
                             <div className="mt-1 text-xs text-muted-foreground flex flex-wrap gap-2">
                               <span>{l.resources.length} resource(s)</span>
@@ -179,7 +169,7 @@ export default function HODOpenLearning() {
                 ))}
                 <Button size="sm" variant="outline" onClick={() => toast.info("Section editor — simulated")}><Plus className="size-4" /> Add Section</Button>
                 {manage.status === "draft" && (
-                  <Button className="w-full" onClick={() => verifyAndPublish(manage)}>Verify &amp; Publish Course</Button>
+                  <Button className="w-full" onClick={() => publishCourse(manage)}>Publish Course</Button>
                 )}
               </div>
             </>
@@ -190,8 +180,8 @@ export default function HODOpenLearning() {
       <InfoDialog
         open={!!published}
         onOpenChange={(o) => !o && setPublished(null)}
-        title="Course verified & published"
-        description={<><strong>{published}</strong> has passed HOD verification and is now published. It appears in the <strong>Open Learning catalog</strong> where students can enrol, and (if cross-stream enabled) to cohort students via Explore.</>}
+        title="Course published"
+        description={<><strong>{published}</strong> is now published. It appears in the <strong>Open Learning catalog</strong> where students can enrol, and (if cross-stream enabled) to cohort students via Explore.</>}
       />
     </div>
   );

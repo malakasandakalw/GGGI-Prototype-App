@@ -17,10 +17,17 @@ import { useStore } from "@/lib/store/provider";
 import type { OLCourse } from "@/lib/types";
 
 export default function LecturerOpenLearning() {
-  const { currentUser, olCourses, olEnrollments, quizzes } = useStore();
+  const { currentUser, olCourses, olEnrollments, quizzes, updateOLCourse } = useStore();
   const myCourses = olCourses.filter((c) => c.lecturerId === currentUser?.id);
   const [manage, setManage] = useState<OLCourse | null>(null);
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  const [published, setPublished] = useState<string | null>(null);
+
+  function publishCourse(c: OLCourse) {
+    updateOLCourse(c.id, { status: "published" });
+    toast.success("Course published — now live in the Open Learning catalog");
+    setManage(null);
+    setPublished(c.title);
+  }
 
   const enrollCount = (id: string) => olEnrollments.filter((e) => e.courseId === id).length;
   const lessonCount = (c: OLCourse) => c.sections.reduce((s, sec) => s + sec.lessons.length, 0);
@@ -41,7 +48,7 @@ export default function LecturerOpenLearning() {
               <p className="text-xs text-muted-foreground capitalize">{c.difficulty} · {lessonCount(c)} lessons · {enrollCount(c.id)} enrolled</p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 <Button size="sm" variant="outline" onClick={() => setManage(c)}>Manage Content</Button>
-                {c.status === "draft" && <Button size="sm" onClick={() => { setSubmitted(c.title); }}>Submit for Verification</Button>}
+                {c.status === "draft" && <Button size="sm" onClick={() => publishCourse(c)}>Publish Course</Button>}
               </div>
             </CardContent>
           </Card>
@@ -88,7 +95,7 @@ export default function LecturerOpenLearning() {
                 ))}
                 <Button size="sm" variant="outline" onClick={() => toast.info("Section editor — simulated")}><Plus className="size-4" /> Add Section</Button>
                 {manage.status === "draft" && (
-                  <Button className="w-full" onClick={() => { setSubmitted(manage.title); setManage(null); }}>Submit for HOD Verification</Button>
+                  <Button className="w-full" onClick={() => publishCourse(manage)}>Publish Course</Button>
                 )}
               </div>
             </>
@@ -97,10 +104,10 @@ export default function LecturerOpenLearning() {
       </Sheet>
 
       <InfoDialog
-        open={!!submitted}
-        onOpenChange={(o) => !o && setSubmitted(null)}
-        title="Submitted for verification"
-        description={<><strong>{submitted}</strong> was submitted to the <strong>HOD</strong> for verification. Once the HOD verifies and publishes it, the course appears in the Open Learning catalog for students to enrol.</>}
+        open={!!published}
+        onOpenChange={(o) => !o && setPublished(null)}
+        title="Course published"
+        description={<><strong>{published}</strong> is now published to the <strong>Open Learning catalog</strong> for students to enrol. You&apos;re responsible for ensuring the content and quizzes are correct before publishing.</>}
       />
     </div>
   );

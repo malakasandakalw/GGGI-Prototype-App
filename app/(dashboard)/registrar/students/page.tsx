@@ -7,6 +7,9 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { InfoDialog } from "@/components/shared/InfoDialog";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
+import { ArchivedYearBanner } from "@/components/shared/ArchivedYearBanner";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +32,7 @@ import type { User } from "@/lib/types";
 
 export default function StudentsPage() {
   const { users, programs, intakes, modules, moduleGrades, submissions, quizSubmissions, updateUser, addIntake, addNotification } = useStore();
+  const { inYear, activeAcademicYear, activeYearEditable } = useYearScope();
   const students = users.filter((u) => u.role === "cohort-student");
   const activePrograms = programs.filter((p) => p.status === "active");
   const [program, setProgram] = useState("all");
@@ -68,7 +72,9 @@ export default function StudentsPage() {
   const intakeName = (id?: string) => intakes.find((i) => i.id === id)?.label ?? "—";
   const semName = (u: User) => programs.find((p) => p.id === u.programId)?.semesters.find((s) => s.id === u.currentSemesterId)?.name ?? "—";
 
-  const intakeOptions = program === "all" ? intakes : intakes.filter((i) => i.programId === program);
+  // Intake filter is scoped to the active academic year (continuing students still show
+  // under "All Intakes" — a batch that entered in an earlier year keeps progressing).
+  const intakeOptions = intakes.filter((i) => inYear(i.academicYearId) && (program === "all" || i.programId === program));
 
   const filtered = useMemo(
     () => students.filter((s) =>
@@ -143,7 +149,10 @@ export default function StudentsPage() {
 
   return (
     <div>
-      <PageHeader title="Student Register" description="View and manage all enrolled students." action={{ label: "Open Intake", icon: CalendarPlus, onClick: () => setIntakeOpen(true) }} />
+      <PageHeader title="Student Register" description="View and manage all enrolled students." action={{ label: "Open Intake", icon: CalendarPlus, onClick: () => setIntakeOpen(true), disabled: !activeYearEditable }}>
+        <AcademicYearSelect />
+      </PageHeader>
+      <ArchivedYearBanner />
       <DataTable
         columns={columns}
         data={filtered}
@@ -249,6 +258,7 @@ export default function StudentsPage() {
         <DialogContent>
           <DialogHeader><DialogTitle>Open Application Intake</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Academic Year: <span className="font-medium text-foreground">{activeAcademicYear?.label}</span> — this intake and its applications belong to the active year.</div>
             <div className="space-y-1.5"><Label className="text-xs">Program</Label>
               <Select value={inProgram} onValueChange={setInProgram}>
                 <SelectTrigger><SelectValue placeholder="Select program" /></SelectTrigger>

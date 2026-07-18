@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Clock, MapPin, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
+import { ArchivedYearBanner } from "@/components/shared/ArchivedYearBanner";
 import { CalendarView, eventColors } from "@/components/shared/CalendarView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,12 +20,15 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store/provider";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { formatDate } from "@/lib/utils/date";
 import type { CalendarEventType } from "@/lib/types";
 
 export default function ProgramAdminCalendar() {
   const { currentUser, programs, calendarEvents, addCalendarEvent } = useStore();
+  const { isModuleInYear, inYear, activeAcademicYear, activeYearEditable } = useYearScope();
   const myPrograms = programs.filter((p) => currentUser?.programIds?.includes(p.id));
+  const yearEvents = calendarEvents.filter((e) => (e.academicYearId ? inYear(e.academicYearId) : e.moduleId ? isModuleInYear(e.moduleId) : true));
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
   const [type, setType] = useState<CalendarEventType>("semester");
@@ -41,7 +46,7 @@ export default function ProgramAdminCalendar() {
     ? calendarEvents.find((e) => e.date === date && e.programId === programId)
     : null;
 
-  const upcoming = [...calendarEvents].sort((a, b) => a.date.localeCompare(b.date));
+  const upcoming = [...yearEvents].sort((a, b) => a.date.localeCompare(b.date));
 
   function openOn(d: string) { setDate(d); setOpen(true); }
   function save() {
@@ -58,10 +63,13 @@ export default function ProgramAdminCalendar() {
 
   return (
     <div>
-      <PageHeader title="Academic Calendar" description="Manage semester dates and program-wide events." action={{ label: "Add Event", icon: Plus, onClick: () => { setDate("2026-06-28"); setOpen(true); } }} />
+      <PageHeader title="Academic Calendar" description="Manage semester dates and program-wide events." action={{ label: "Add Event", icon: Plus, onClick: () => { setDate("2026-06-28"); setOpen(true); }, disabled: !activeYearEditable }}>
+        <AcademicYearSelect />
+      </PageHeader>
+      <ArchivedYearBanner />
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <CalendarView events={calendarEvents} onDateClick={openOn} />
+          <CalendarView events={yearEvents} onDateClick={openOn} initialMonth={new Date(activeAcademicYear?.startDate ?? "2026-06-01")} />
           <div className="flex flex-wrap gap-3 mt-3 text-xs">
             {Object.keys(eventColors).map((k) => (
               <span key={k} className={`px-2 py-0.5 rounded border ${eventColors[k]} capitalize`}>{k}</span>
@@ -92,6 +100,7 @@ export default function ProgramAdminCalendar() {
         <DialogContent>
           <DialogHeader><DialogTitle>Add Calendar Event</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Academic Year: <span className="font-medium text-foreground">{activeAcademicYear?.label}</span> — this event is scheduled under the active year.</div>
             <div className="space-y-1.5"><Label className="text-xs">Event Type</Label>
               <Select value={type} onValueChange={(v) => setType(v as CalendarEventType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

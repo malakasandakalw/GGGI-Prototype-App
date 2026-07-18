@@ -15,7 +15,7 @@ import { InfoDialog } from "@/components/shared/InfoDialog";
 import { useStore } from "@/lib/store/provider";
 
 export default function ApplyPage() {
-  const { programs, addApplication } = useStore();
+  const { programs, activeAcademicYear, addApplication } = useStore();
   const activePrograms = programs.filter((p) => p.status === "active");
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -112,6 +112,7 @@ export default function ApplyPage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Program & Qualifications</CardTitle></CardHeader>
             <CardContent className="space-y-4">
+              <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Applying for the <span className="font-medium text-foreground">{activeAcademicYear?.label}</span> academic year intake.</div>
               <Field label="Program Applied For" required>
                 <Select value={programId} onValueChange={setProgramId}>
                   <SelectTrigger><SelectValue placeholder="Select a program" /></SelectTrigger>

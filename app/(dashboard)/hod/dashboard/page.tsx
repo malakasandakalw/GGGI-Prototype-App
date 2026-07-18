@@ -1,21 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { Layers, CheckCircle, CheckSquare, AlertTriangle, BookOpen, Users, ClipboardList, BookMarked } from "lucide-react";
+import { Layers, CheckSquare, AlertTriangle, BookOpen, Users, ClipboardList, BookMarked } from "lucide-react";
 import { StatCard } from "@/components/shared/StatCard";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearChip } from "@/components/shared/AcademicYearChip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store/provider";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { gpa } from "@/lib/utils/gpa";
 
 export default function HODDashboard() {
   const { currentUser, modules, lectures, quizzes, users, submissions, moduleGrades, programs } = useStore();
+  const { isModuleInYear } = useYearScope();
   const dept = currentUser?.department;
-  const deptModules = modules.filter((m) => programs.find((p) => p.id === m.programId)?.department === dept);
-  const pendingLec = lectures.filter((l) => l.status === "submitted").length;
-  const pendingQz = quizzes.filter((q) => q.status === "submitted").length;
+  const deptModules = modules.filter((m) => isModuleInYear(m.id) && programs.find((p) => p.id === m.programId)?.department === dept);
+  const lecturesPublished = lectures.filter((l) => l.status === "published" && isModuleInYear(l.moduleId)).length;
+  const quizzesActive = quizzes.filter((q) => q.status === "active" && isModuleInYear(q.moduleId)).length;
   const students = users.filter((u) => u.role === "cohort-student");
   const atRisk = students.filter((s) => {
     const g = moduleGrades.filter((x) => x.studentId === s.id && x.published);
@@ -25,15 +28,16 @@ export default function HODDashboard() {
 
   return (
     <div>
-      <PageHeader title={`${dept} Department`} description="Your academic control centre." />
+      <PageHeader title={`${dept} Department`} description="Your academic control centre.">
+        <AcademicYearChip />
+      </PageHeader>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Modules in Department" value={deptModules.length} icon={Layers} />
-        <StatCard title="Pending Lecture Verifications" value={pendingLec} icon={CheckCircle} variant="warning" />
-        <StatCard title="Pending Quiz Verifications" value={pendingQz} icon={CheckSquare} variant="warning" />
+        <StatCard title="Lectures Published" value={lecturesPublished} icon={BookOpen} variant="success" />
+        <StatCard title="Quizzes Active" value={quizzesActive} icon={CheckSquare} variant="success" />
         <StatCard title="Students at Risk" value={atRisk} icon={AlertTriangle} variant="danger" />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-4">
-        <StatCard title="Lectures Published" value={lectures.filter((l) => l.status === "published").length} icon={BookOpen} variant="success" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
         <StatCard title="Active Students" value={students.filter((s) => s.status === "active").length} icon={Users} />
         <StatCard title="Assignments to Grade" value={ungraded} icon={ClipboardList} variant="warning" />
         <StatCard title="Programs Managed" value={currentUser?.programIds?.length ?? 0} icon={BookMarked} />
@@ -43,8 +47,7 @@ export default function HODDashboard() {
         <Card className="lg:col-span-1">
           <CardHeader><CardTitle className="text-base">To-Do</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <TodoItem text={`${pendingLec} lectures pending verification`} href="/hod/verification/lectures" />
-            <TodoItem text={`${pendingQz} quizzes pending verification`} href="/hod/verification/quizzes" />
+            <TodoItem text={`${ungraded} assignments awaiting grading`} href="/hod/gradebook" />
             <TodoItem text="Results ready to publish for CS201" href="/hod/results" />
             <TodoItem text="BSc CS submitted to Program Admin" href="/hod/programs" muted />
           </CardContent>

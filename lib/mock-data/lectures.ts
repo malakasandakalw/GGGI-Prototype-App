@@ -52,7 +52,7 @@ export const lectures: Lecture[] = [
     order: 4,
     lectureDate: "2026-02-24",
     description: "INNER, LEFT, RIGHT joins and correlated subqueries.",
-    status: "submitted",
+    status: "published",
     createdByLecturerId: "u-lec1",
     resources: [
       { id: "r-8", lectureId: "lec-201-4", title: "Lecture 4 Slides", type: "slides", url: "#", isDownloadable: true, format: "PPTX" },
@@ -95,7 +95,7 @@ export const lectures: Lecture[] = [
     order: 2,
     lectureDate: "2026-02-11",
     description: "Variables, functions, DOM manipulation and events.",
-    status: "submitted",
+    status: "published",
     createdByLecturerId: "u-lec2",
     resources: [
       { id: "r-12", lectureId: "lec-202-2", title: "Slides", type: "slides", url: "#", isDownloadable: true, format: "PPTX" },

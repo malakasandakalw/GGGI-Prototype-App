@@ -1,6 +1,7 @@
 import type { Application } from "@/lib/types";
 
-export const applications: Application[] = [
+// All seeded applications target the 2026/2027 intake cycle.
+const rawApplications: Application[] = [
   {
     id: "app-1",
     referenceNumber: "APP-2026-0001",
@@ -133,3 +134,8 @@ export const applications: Application[] = [
     ],
   },
 ];
+
+export const applications: Application[] = rawApplications.map((a) => ({
+  academicYearId: "ay-2026",
+  ...a,
+}));

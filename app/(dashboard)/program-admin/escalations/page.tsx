@@ -29,11 +29,11 @@ interface Escalation {
 const seed: Escalation[] = [
   {
     id: "esc-1",
-    title: "Disagreement over lecture verification timeline",
+    title: "Disagreement over lecture publishing timeline",
     raisedBy: "Dr. Nimal Perera (HOD, Computing)",
     against: "Mr. Kasun Silva (Lecturer)",
     program: "BSc (Hons) Computer Science",
-    detail: "The HOD reports repeated late submission of lecture content for verification, delaying publication to students.",
+    detail: "The HOD reports repeated delays in publishing lecture content, leaving students without materials on time.",
     raisedAt: "2026-06-24",
     status: "open",
   },
