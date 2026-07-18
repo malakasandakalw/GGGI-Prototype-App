@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, FileText } from "lucide-react";
+import { ArrowLeft, Copy, FileText, Mail } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,7 @@ const NEXT_STATUSES: ApplicationStatus[] = ["under-review", "payment-pending", "
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { applications, programs, intakes, updateApplication, addUser, addNotification } = useStore();
+  const { applications, programs, intakes, updateApplication, addUser, addNotification, sendPaymentReminder } = useStore();
   const app = applications.find((a) => a.id === id);
 
   const [status, setStatus] = useState<ApplicationStatus | "">("");
@@ -39,6 +39,7 @@ export default function ApplicationDetail() {
   const [intakeId, setIntakeId] = useState("");
   const [payPendingInfo, setPayPendingInfo] = useState(false);
   const [payConfirmedInfo, setPayConfirmedInfo] = useState(false);
+  const [reminderInfo, setReminderInfo] = useState(false);
   const [enrolledInfo, setEnrolledInfo] = useState<{ intake: string } | null>(null);
 
   if (!app) return <div className="p-8">Application not found.</div>;
@@ -62,6 +63,12 @@ export default function ApplicationDetail() {
     if (status === "payment-pending") setPayPendingInfo(true);
     if (status === "payment-confirmed") setPayConfirmedInfo(true);
     setStatus(""); setRejectReason("");
+  }
+
+  function remind() {
+    sendPaymentReminder(app!.id);
+    toast.success("Payment reminder emailed (simulated)");
+    setReminderInfo(true);
   }
 
   function createStudent(e: React.FormEvent<HTMLFormElement>) {
@@ -156,6 +163,16 @@ export default function ApplicationDetail() {
                 <Alert className="bg-red-50 border-red-200"><AlertDescription className="text-xs"><span className="font-medium">Rejection reason: </span>{app.rejectionReason}</AlertDescription></Alert>
               )}
               <Button className="w-full" disabled={!status || (status === "rejected" && !rejectReason.trim())} onClick={applyStatus}>Update Status</Button>
+              {app.status === "payment-pending" && (
+                <div className="space-y-1.5 pt-2 border-t">
+                  <Button variant="outline" className="w-full" onClick={remind}><Mail className="size-4" /> Send Payment Reminder</Button>
+                  {app.lastPaymentReminderAt && (
+                    <p className="text-[11px] text-muted-foreground text-center">
+                      Last reminded {formatDateTime(app.lastPaymentReminderAt)} · {app.paymentReminderCount} reminder{app.paymentReminderCount === 1 ? "" : "s"} sent
+                    </p>
+                  )}
+                </div>
+              )}
               {app.status === "payment-confirmed" && (
                 <Button variant="outline" className="w-full" onClick={() => setCreateOpen(true)}>Create Student Account</Button>
               )}
@@ -227,6 +244,12 @@ export default function ApplicationDetail() {
         title="Payment confirmed"
         description={<>Payment confirmed. You can now <strong>Create the Student Account</strong> — this enrolls the student and sends their welcome email.</>}
         actionLabel="Got it"
+      />
+      <InfoDialog
+        open={reminderInfo}
+        onOpenChange={setReminderInfo}
+        title="Payment reminder sent"
+        description={<>A payment reminder email has been sent (simulated) to <strong>{app.email}</strong>, asking the applicant to complete their admission payment. You can send follow-up reminders as needed — each one is logged on the application.</>}
       />
       <InfoDialog
         open={!!enrolledInfo}

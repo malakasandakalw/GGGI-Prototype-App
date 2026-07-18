@@ -4,12 +4,13 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import * as mock from "@/lib/mock-data";
 import { DEFAULT_GRADE_BANDS, markToGrade, weightedTotal } from "@/lib/utils/grading";
 import type {
+  AcademicYear,
   Announcement,
   Application,
-  ApplicationStatus,
   Assignment,
   AuditEvent,
   CalendarEvent,
+  Clerk,
   CrossEnrollmentRequest,
   DiscussionReply,
   DiscussionThread,
@@ -41,8 +42,19 @@ interface StoreValue {
   login: (role: Role) => void;
   logout: () => void;
 
+  // academic year (real-world calendar scope, e.g. "2026/2027")
+  academicYears: AcademicYear[];
+  activeAcademicYearId: string;
+  activeAcademicYear: AcademicYear | null;
+  setActiveAcademicYear: (id: string) => void;
+  /** Resolve the academic year a semester belongs to. */
+  academicYearIdOfSemester: (semesterId: string) => string | undefined;
+  /** Resolve the academic year a module is offered in (module → semester → year). */
+  academicYearIdOfModule: (moduleId: string) => string | undefined;
+
   // collections
   users: User[];
+  clerks: Clerk[];
   programs: Program[];
   intakes: Intake[];
   modules: Module[];
@@ -71,6 +83,10 @@ interface StoreValue {
   updateUser: (id: string, patch: Partial<User>) => void;
   markLectureComplete: (studentId: string, lectureId: string) => void;
 
+  // program clerks (Registrar-managed application-management accounts)
+  addClerk: (c: Partial<Clerk> & { name: string; email: string; programId: string }) => Clerk;
+  updateClerk: (id: string, patch: Partial<Clerk>) => void;
+
   // programs
   addProgram: (p: Partial<Program> & { name: string; code: string }) => Program;
   updateProgram: (id: string, patch: Partial<Program>) => void;
@@ -98,6 +114,8 @@ interface StoreValue {
   // applications
   addApplication: (a: Partial<Application> & { applicantName: string; programId: string }) => Application;
   updateApplication: (id: string, patch: Partial<Application>, statusNote?: string) => void;
+  /** Simulate emailing a payment reminder to an applicant awaiting payment. */
+  sendPaymentReminder: (applicationId: string) => void;
 
   // cross enrollment
   addCrossEnrollment: (r: Partial<CrossEnrollmentRequest> & { studentId: string; studentName: string; type: CrossEnrollmentRequest["type"] }) => void;
@@ -150,7 +168,10 @@ const Ctx = createContext<StoreValue | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>(mock.users);
+  const [clerks, setClerks] = useState<Clerk[]>(mock.clerks);
   const currentUser = users.find((u) => u.id === currentUserId) ?? null;
+  const [academicYears] = useState<AcademicYear[]>(mock.academicYears);
+  const [activeAcademicYearId, setActiveAcademicYearId] = useState<string>(mock.currentAcademicYearId);
   const [programs, setPrograms] = useState<Program[]>(mock.programs);
   const [intakes, setIntakes] = useState<Intake[]>(mock.intakes);
   const [modules, setModules] = useState<Module[]>(mock.modules);
@@ -175,10 +196,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [notificationTemplates, setNotificationTemplates] = useState<NotificationTemplate[]>(mock.notificationTemplates);
   const [systemSettings, setSystemSettingsState] = useState(mock.systemSettings);
 
-  // restore login from session
+  // restore login + active academic year from session
   useEffect(() => {
     const saved = typeof window !== "undefined" ? window.localStorage.getItem("lms-current-user") : null;
     if (saved && mock.users.some((u) => u.id === saved)) setCurrentUserId(saved);
+    const savedYear = typeof window !== "undefined" ? window.localStorage.getItem("lms-academic-year") : null;
+    if (savedYear && mock.academicYears.some((y) => y.id === savedYear)) setActiveAcademicYearId(savedYear);
   }, []);
 
   const persistUser = (id: string | null) => {
@@ -221,7 +244,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         persistUser(null);
       },
 
+      academicYears,
+      activeAcademicYearId,
+      activeAcademicYear: academicYears.find((y) => y.id === activeAcademicYearId) ?? null,
+      setActiveAcademicYear: (id) => {
+        setActiveAcademicYearId(id);
+        if (typeof window !== "undefined") window.localStorage.setItem("lms-academic-year", id);
+      },
+      academicYearIdOfSemester: (semesterId) => {
+        for (const p of programs) {
+          const s = p.semesters.find((x) => x.id === semesterId);
+          if (s) return s.academicYearId;
+        }
+        return undefined;
+      },
+      academicYearIdOfModule: (moduleId) => {
+        const mod = modules.find((m) => m.id === moduleId);
+        if (!mod) return undefined;
+        for (const p of programs) {
+          const s = p.semesters.find((x) => x.id === mod.semesterId);
+          if (s) return s.academicYearId;
+        }
+        return undefined;
+      },
+
       users,
+      clerks,
       programs,
       intakes,
       modules,
@@ -258,6 +306,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return newU;
       },
       updateUser: (id, patch) => setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u))),
+      addClerk: (c) => {
+        const newC: Clerk = {
+          id: uid("clk"),
+          status: "active",
+          createdAt: new Date().toISOString(),
+          tempPassword: "Welcome@2026",
+          ...c,
+        } as Clerk;
+        setClerks((prev) => [...prev, newC]);
+        addAudit({ action: "Clerk Account Created", details: `Created program clerk account for ${c.name}` });
+        return newC;
+      },
+      updateClerk: (id, patch) => setClerks((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c))),
       markLectureComplete: (studentId, lectureId) =>
         setUsers((prev) =>
           prev.map((u) =>
@@ -287,11 +348,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       updateProgram: (id, patch) => setPrograms((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
       addSemesterToProgram: (programId, semester) =>
         setPrograms((prev) =>
-          prev.map((p) => (p.id === programId ? { ...p, semesters: [...p.semesters, semester] } : p)),
+          prev.map((p) =>
+            p.id === programId
+              // Stamp the active academic year unless the caller supplied one.
+              ? { ...p, semesters: [...p.semesters, { academicYearId: activeAcademicYearId, ...semester }] }
+              : p,
+          ),
         ),
       addIntake: (i) => {
         const newI: Intake = {
           id: uid("in"),
+          academicYearId: activeAcademicYearId,
           applicationOpenDate: new Date().toISOString().slice(0, 10),
           applicationCloseDate: new Date().toISOString().slice(0, 10),
           academicStartDate: new Date().toISOString().slice(0, 10),
@@ -426,6 +493,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const newA: Application = {
           id: uid("app"),
           referenceNumber: ref,
+          academicYearId: activeAcademicYearId,
           email: "",
           phone: "",
           nic: "",
@@ -460,6 +528,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             return { ...a, ...patch, history };
           }),
         ),
+      sendPaymentReminder: (applicationId) => {
+        const now = new Date().toISOString();
+        setApplications((prev) =>
+          prev.map((a) =>
+            a.id === applicationId
+              ? { ...a, paymentReminderCount: (a.paymentReminderCount ?? 0) + 1, lastPaymentReminderAt: now }
+              : a,
+          ),
+        );
+        const appn = applications.find((a) => a.id === applicationId);
+        if (appn) addAudit({ action: "Payment Reminder Sent", details: `Emailed payment reminder to ${appn.applicantName} (${appn.referenceNumber})` });
+      },
 
       addCrossEnrollment: (r) => {
         const newR: CrossEnrollmentRequest = {
@@ -511,11 +591,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             );
           }
           if (req) {
+            const modName = req.targetModuleId ? modules.find((m) => m.id === req.targetModuleId)?.name : undefined;
             addNotification({
               recipientId: req.studentId,
               title: "Cross-enrollment approved",
-              body: "Your cross-enrollment request has been approved.",
+              body: req.targetModuleId
+                ? `You're now enrolled in ${modName ?? "the module"}. Open it from My Modules to access its lectures, assignments and quizzes.`
+                : "Your cross-enrollment request has been approved.",
               type: "enrollment",
+              linkTo: req.targetModuleId ? `/cohort-student/modules/${req.targetModuleId}` : undefined,
             });
           }
         }
@@ -656,7 +740,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addAudit,
 
       addCalendarEvent: (e) =>
-        setCalendarEvents((prev) => [...prev, { id: uid("ev"), ...e } as CalendarEvent]),
+        setCalendarEvents((prev) => [...prev, { id: uid("ev"), academicYearId: activeAcademicYearId, ...e } as CalendarEvent]),
       updateCalendarEvent: (id, patch) =>
         setCalendarEvents((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e))),
       deleteCalendarEvent: (id) => setCalendarEvents((prev) => prev.filter((e) => e.id !== id)),
@@ -718,9 +802,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setNotificationTemplates,
       setSystemSettings: (s) => setSystemSettingsState((prev) => ({ ...prev, ...s })),
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    currentUser, users, programs, intakes, modules, lectures, assignments, submissions, quizzes,
+    academicYears, activeAcademicYearId,
+    currentUser, users, clerks, programs, intakes, modules, lectures, assignments, submissions, quizzes,
     quizSubmissions, applications, crossEnrollments, moduleGrades, caSubmittedModuleIds, olCourses, olEnrollments,
     olCategories, notifications, auditEvents, calendarEvents, announcements, discussions, gradeBands,
     notificationTemplates, systemSettings,

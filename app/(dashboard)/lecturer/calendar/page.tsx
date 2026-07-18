@@ -2,28 +2,35 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
 import { CalendarView, eventColors } from "@/components/shared/CalendarView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store/provider";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { formatDate } from "@/lib/utils/date";
 import type { CalendarEvent } from "@/lib/types";
 
 export default function LecturerCalendar() {
   const { currentUser, modules, calendarEvents } = useStore();
+  const { isModuleInYear, inYear, activeAcademicYear } = useYearScope();
   const myModuleIds = modules.filter((m) => m.lecturerIds.includes(currentUser?.id ?? "")).map((m) => m.id);
-  const events = calendarEvents.filter((e) => !e.moduleId || myModuleIds.includes(e.moduleId));
+  const events = calendarEvents.filter(
+    (e) => (!e.moduleId || myModuleIds.includes(e.moduleId)) && (e.academicYearId ? inYear(e.academicYearId) : e.moduleId ? isModuleInYear(e.moduleId) : true),
+  );
   const [detail, setDetail] = useState<CalendarEvent | null>(null);
   const upcoming = [...events].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <div>
-      <PageHeader title="Exam Calendar" description="Read-only view of exams and assessments for your modules." />
+      <PageHeader title="Exam Calendar" description="Read-only view of exams and assessments for your modules.">
+        <AcademicYearSelect />
+      </PageHeader>
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <CalendarView events={events} onEventClick={setDetail} initialMonth={new Date("2026-07-01")} />
+          <CalendarView events={events} onEventClick={setDetail} initialMonth={new Date(activeAcademicYear?.startDate ?? "2026-07-01")} />
           <div className="flex flex-wrap gap-3 mt-3 text-xs">
             {Object.keys(eventColors).map((k) => <span key={k} className={`px-2 py-0.5 rounded border ${eventColors[k]}`}>{k}</span>)}
           </div>

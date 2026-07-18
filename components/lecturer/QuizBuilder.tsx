@@ -44,7 +44,7 @@ export function QuizBuilder({ open, onOpenChange, moduleId }: { open: boolean; o
   const [showAnswers, setShowAnswers] = useState(true);
   const [availableFrom, setAvailableFrom] = useState("2026-06-28T09:00");
   const [availableTo, setAvailableTo] = useState("2026-07-30T23:59");
-  const [submittedInfo, setSubmittedInfo] = useState(false);
+  const [publishedInfo, setPublishedInfo] = useState(false);
 
   const total = questions.reduce((s, q) => s + q.marks, 0);
   const toggleMulti = (o: string) => setCorrectMulti((prev) => prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o]);
@@ -65,7 +65,7 @@ export function QuizBuilder({ open, onOpenChange, moduleId }: { open: boolean; o
     toast.success("Question added");
   }
 
-  function finish(submit: boolean) {
+  function finish(publish: boolean) {
     const q = addQuiz({
       moduleId, title, instructions, questions,
       timeLimitMinutes: Number(timeLimit) || undefined,
@@ -73,11 +73,11 @@ export function QuizBuilder({ open, onOpenChange, moduleId }: { open: boolean; o
       randomiseOrder: randomise, showAnswersAfter: showAnswers,
       availableFrom, availableTo,
     });
-    if (submit) updateQuiz(q.id, { status: "submitted", submittedAt: new Date().toISOString() });
-    toast.success(submit ? "Quiz submitted for HOD verification" : "Quiz saved as draft");
+    if (publish) updateQuiz(q.id, { status: "active" });
+    toast.success(publish ? "Quiz published — live to students in its availability window" : "Quiz saved as draft");
     onOpenChange(false);
     setQuestions([]); setStep("bank"); setTitle("");
-    if (submit) setSubmittedInfo(true);
+    if (publish) setPublishedInfo(true);
   }
 
   return (
@@ -181,7 +181,7 @@ export function QuizBuilder({ open, onOpenChange, moduleId }: { open: boolean; o
             </div>
             <DialogFooter>
               <Button variant="outline" disabled={!title || questions.length === 0} onClick={() => finish(false)}>Save as Draft</Button>
-              <Button disabled={!title || questions.length === 0} onClick={() => finish(true)}>Submit for HOD Verification</Button>
+              <Button disabled={!title || questions.length === 0} onClick={() => finish(true)}>Publish Quiz</Button>
             </DialogFooter>
           </TabsContent>
         </Tabs>
@@ -189,10 +189,10 @@ export function QuizBuilder({ open, onOpenChange, moduleId }: { open: boolean; o
     </Dialog>
 
     <InfoDialog
-      open={submittedInfo}
-      onOpenChange={setSubmittedInfo}
-      title="Quiz submitted for verification"
-      description={<>Quiz submitted to the <strong>HOD</strong> for verification. Once approved, it becomes available to <strong>students</strong> during its availability window.</>}
+      open={publishedInfo}
+      onOpenChange={setPublishedInfo}
+      title="Quiz published"
+      description={<>Quiz published and available to <strong>students</strong> during its availability window. You&apos;re responsible for ensuring the questions and answers are correct before publishing.</>}
     />
     </>
   );

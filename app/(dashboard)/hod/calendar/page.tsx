@@ -4,8 +4,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
+import { ArchivedYearBanner } from "@/components/shared/ArchivedYearBanner";
 import { CalendarView, eventColors } from "@/components/shared/CalendarView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +37,10 @@ const typeLabel = (t: string) => EVENT_TYPES.find((x) => x.value === t)?.label ?
 
 export default function HODCalendar() {
   const { currentUser, modules, programs, calendarEvents, addCalendarEvent, deleteCalendarEvent } = useStore();
-  const myModules = modules.filter((m) => programs.find((p) => p.id === m.programId)?.department === currentUser?.department);
+  const { isModuleInYear, inYear, activeAcademicYear, activeYearEditable } = useYearScope();
+  const myModules = modules.filter((m) => isModuleInYear(m.id) && programs.find((p) => p.id === m.programId)?.department === currentUser?.department);
+  // Scope events to the active academic year (by own academicYearId, or via linked module).
+  const yearEvents = calendarEvents.filter((e) => (e.academicYearId ? inYear(e.academicYearId) : e.moduleId ? isModuleInYear(e.moduleId) : true));
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<CalendarEvent | null>(null);
   const [date, setDate] = useState("");
@@ -47,7 +53,7 @@ export default function HODCalendar() {
   const [duration, setDuration] = useState("");
 
   const clash = date && moduleId ? calendarEvents.find((e) => e.date === date && e.moduleId === moduleId) : null;
-  const upcoming = [...calendarEvents].sort((a, b) => a.date.localeCompare(b.date));
+  const upcoming = [...yearEvents].sort((a, b) => a.date.localeCompare(b.date));
   const timed = ["exam", "quiz", "mid-semester"].includes(type);
 
   function save() {
@@ -62,10 +68,13 @@ export default function HODCalendar() {
 
   return (
     <div>
-      <PageHeader title="Exam Calendar" description="Schedule examinations and assessments for your modules." action={{ label: "Add Event", icon: Plus, onClick: () => { setDate("2026-07-10"); setOpen(true); } }} />
+      <PageHeader title="Exam Calendar" description="Schedule examinations and assessments for your modules." action={{ label: "Add Event", icon: Plus, onClick: () => { setDate("2026-07-10"); setOpen(true); }, disabled: !activeYearEditable }}>
+        <AcademicYearSelect />
+      </PageHeader>
+      <ArchivedYearBanner />
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <CalendarView events={calendarEvents} onDateClick={(d) => { setDate(d); setOpen(true); }} onEventClick={setDetail} initialMonth={new Date("2026-07-01")} />
+          <CalendarView events={yearEvents} onDateClick={(d) => { setDate(d); setOpen(true); }} onEventClick={setDetail} initialMonth={new Date(activeAcademicYear?.startDate ?? "2026-07-01")} />
           <div className="flex flex-wrap gap-3 mt-3 text-xs">
             {Object.keys(eventColors).map((k) => <span key={k} className={`px-2 py-0.5 rounded border ${eventColors[k]} capitalize`}>{k}</span>)}
           </div>
@@ -87,6 +96,7 @@ export default function HODCalendar() {
         <DialogContent>
           <DialogHeader><DialogTitle>Add Calendar Event</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Academic Year: <span className="font-medium text-foreground">{activeAcademicYear?.label}</span> — this event is scheduled under the active year.</div>
             <div className="space-y-1.5"><Label className="text-xs">Event Type</Label>
               <Select value={type} onValueChange={(v) => setType(v as CalendarEventType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

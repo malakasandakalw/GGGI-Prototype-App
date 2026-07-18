@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store/provider";
 import { SidebarNav } from "@/components/shared/SidebarNav";
 import { TopNav } from "@/components/shared/TopNav";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
+import { YearSwitchExplainer } from "@/components/shared/YearSwitchExplainer";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { currentRole, systemSettings } = useStore();
@@ -38,6 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 p-6 lg:p-8 overflow-x-hidden">{children}</main>
       </div>
       <RoleSwitcher />
+      <YearSwitchExplainer />
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { InfoDialog } from "@/components/shared/InfoDialog";
+import { ArchivedYearBanner } from "@/components/shared/ArchivedYearBanner";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +29,8 @@ import type { Module } from "@/lib/types";
 export default function ProgramBuilder() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { programs, modules, users, addSemesterToProgram, addModule, updateModule, updateProgram } = useStore();
+  const { programs, modules, users, academicYears, activeAcademicYear, addSemesterToProgram, addModule, updateModule, updateProgram } = useStore();
+  const { activeYearEditable } = useYearScope();
   const program = programs.find((p) => p.id === id);
   const [selModuleId, setSelModuleId] = useState<string | null>(null);
   const [semOpen, setSemOpen] = useState(false);
@@ -37,6 +40,8 @@ export default function ProgramBuilder() {
 
   if (!program) return <div className="p-8">Program not found.</div>;
   const editable = program.status === "draft";
+  // Create actions also require the active academic year to be open (not archived).
+  const canCreate = editable && activeYearEditable;
   const lecturerName = (lid: string) => users.find((u) => u.id === lid)?.name ?? "Unassigned";
   const programModules = modules.filter((m) => m.programId === program.id);
   const selModule = programModules.find((m) => m.id === selModuleId) ?? null;
@@ -91,9 +96,11 @@ export default function ProgramBuilder() {
         )}
       </PageHeader>
 
+      <ArchivedYearBanner />
+
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-3">
-          {editable && <Button variant="outline" size="sm" onClick={() => setSemOpen(true)}><Plus className="size-4" /> Add Semester</Button>}
+          {canCreate && <Button variant="outline" size="sm" onClick={() => setSemOpen(true)}><Plus className="size-4" /> Add Semester</Button>}
           {program.semesters.map((s) => (
             <Collapsible key={s.id} defaultOpen>
               <Card>
@@ -113,7 +120,7 @@ export default function ProgramBuilder() {
                         </button>
                       );
                     })}
-                    {editable && (
+                    {canCreate && (
                       <Button size="sm" variant="ghost" onClick={() => setModOpen(s.id)}><Plus className="size-4" /> Add Module</Button>
                     )}
                   </CollapsibleContent>
@@ -124,6 +131,7 @@ export default function ProgramBuilder() {
                 open={modOpen === s.id}
                 onOpenChange={(o) => !o && setModOpen(null)}
                 semName={s.name}
+                yearLabel={academicYears.find((y) => y.id === s.academicYearId)?.label ?? activeAcademicYear?.label}
                 existingModules={programModules}
                 onSubmit={(e, prereqs) => addModuleToSem(e, s.id, prereqs)}
               />
@@ -153,6 +161,7 @@ export default function ProgramBuilder() {
         <DialogContent>
           <DialogHeader><DialogTitle>Add Semester</DialogTitle></DialogHeader>
           <form onSubmit={addSemester} className="space-y-3">
+            <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Academic Year: <span className="font-medium text-foreground">{activeAcademicYear?.label}</span> — this semester is created under the active year.</div>
             <div className="space-y-1.5"><Label className="text-xs">Semester Name</Label><Input name="name" placeholder="Year 2 - Semester 1" required /></div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5"><Label className="text-xs">Year</Label><Input name="year" type="number" defaultValue={1} /></div>
@@ -187,11 +196,12 @@ export default function ProgramBuilder() {
 }
 
 function AddModuleDialog({
-  open, onOpenChange, semName, existingModules, onSubmit,
+  open, onOpenChange, semName, yearLabel, existingModules, onSubmit,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   semName: string;
+  yearLabel?: string;
   existingModules: Module[];
   onSubmit: (e: React.FormEvent<HTMLFormElement>, prereqs: string[]) => void;
 }) {
@@ -203,6 +213,7 @@ function AddModuleDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Add Module to {semName}</DialogTitle></DialogHeader>
         <form onSubmit={(e) => onSubmit(e, prereqs)} className="space-y-3">
+          <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Academic Year: <span className="font-medium text-foreground">{yearLabel}</span> — inherited from the semester.</div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label className="text-xs">Code</Label><Input name="code" required /></div>
             <div className="space-y-1.5"><Label className="text-xs">Credits</Label><Input name="credits" type="number" defaultValue={15} /></div>

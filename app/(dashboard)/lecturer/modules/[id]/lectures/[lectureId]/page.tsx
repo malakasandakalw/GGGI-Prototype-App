@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -30,7 +29,7 @@ const resIcon: Record<Resource["type"], typeof Video> = { video: Video, slides: 
 export default function LectureDetail() {
   const { id, lectureId } = useParams<{ id: string; lectureId: string }>();
   const router = useRouter();
-  const { lectures, updateLecture, addResource, addNotification } = useStore();
+  const { lectures, updateLecture, addResource } = useStore();
   const lecture = lectures.find((l) => l.id === lectureId);
   const [resOpen, setResOpen] = useState(false);
   const [resType, setResType] = useState<Resource["type"]>("slides");
@@ -38,16 +37,15 @@ export default function LectureDetail() {
   const [downloadable, setDownloadable] = useState(true);
   const [fileName, setFileName] = useState("");
   const [editOpen, setEditOpen] = useState(false);
-  const [submittedInfo, setSubmittedInfo] = useState(false);
+  const [publishedInfo, setPublishedInfo] = useState(false);
 
   if (!lecture) return <div className="p-8">Lecture not found.</div>;
   const editable = lecture.status === "draft";
 
-  function submit() {
-    updateLecture(lecture!.id, { status: "submitted", hodFeedback: undefined });
-    addNotification({ recipientId: "u-hod", title: "Lecture submitted for verification", body: `${lecture!.title} is awaiting your review.`, type: "lecture", linkTo: "/hod/verification/lectures" });
-    toast.success("Lecture submitted. HOD will be notified.");
-    setSubmittedInfo(true);
+  function publish() {
+    updateLecture(lecture!.id, { status: "published" });
+    toast.success("Lecture published. Now visible to students.");
+    setPublishedInfo(true);
   }
   function saveInfo(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -89,15 +87,8 @@ export default function LectureDetail() {
       <PageHeader title={lecture.title} description={`Lecture ${lecture.order} · ${formatDate(lecture.lectureDate)}`}>
         <StatusBadge status={lecture.status} />
         {editable && <Button variant="outline" onClick={() => setEditOpen(true)}><Pencil className="size-4" /> Edit Info</Button>}
-        {editable && <Button onClick={submit}>Submit for Verification</Button>}
+        {editable && <Button onClick={publish}>Publish Lecture</Button>}
       </PageHeader>
-
-      {lecture.hodFeedback && (
-        <Alert className="mb-4 bg-red-50 border-red-200">
-          <AlertTitle>Returned by HOD</AlertTitle>
-          <AlertDescription>{lecture.hodFeedback}</AlertDescription>
-        </Alert>
-      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
@@ -134,7 +125,7 @@ export default function LectureDetail() {
           <CardHeader><CardTitle className="text-base">Status</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center justify-between"><span className="text-muted-foreground">Current</span><StatusBadge status={lecture.status} /></div>
-            <p className="text-muted-foreground text-xs">Draft → Submit for Verification → HOD Approves → Published</p>
+            <p className="text-muted-foreground text-xs">Draft → Publish → Visible to students</p>
           </CardContent>
         </Card>
       </div>
@@ -188,10 +179,10 @@ export default function LectureDetail() {
       </Dialog>
 
       <InfoDialog
-        open={submittedInfo}
-        onOpenChange={setSubmittedInfo}
-        title="Lecture submitted for verification"
-        description={<>Lecture submitted to the <strong>HOD</strong> for verification. It stays in <em>Pending Verification</em> and is <strong>not visible to students</strong> until the HOD approves it. If returned, you&apos;ll see their feedback here.</>}
+        open={publishedInfo}
+        onOpenChange={setPublishedInfo}
+        title="Lecture published"
+        description={<>Lecture published and <strong>immediately visible to students</strong> in this module, along with its resources. You&apos;re responsible for ensuring the content and materials are correct before publishing.</>}
       />
     </div>
   );

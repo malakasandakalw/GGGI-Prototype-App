@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BookMarked, Users, Layers, FileClock, Calendar } from "lucide-react";
 import { StatCard } from "@/components/shared/StatCard";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearChip } from "@/components/shared/AcademicYearChip";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStore } from "@/lib/store/provider";
@@ -19,7 +20,7 @@ export default function ProgramAdminDashboard() {
 
   return (
     <div>
-      <PageHeader title="Program Admin Dashboard" description="Oversight across your programs and departments." />
+      <PageHeader title="Program Admin Dashboard" description="Oversight across your programs and departments."><AcademicYearChip /></PageHeader>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Programs Managed" value={myPrograms.length} icon={BookMarked} />
         <StatCard title="Total Students" value={students.length} icon={Users} />

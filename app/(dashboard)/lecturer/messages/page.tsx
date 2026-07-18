@@ -13,16 +13,18 @@ import {
 } from "@/components/ui/select";
 import { useStore } from "@/lib/store/provider";
 import { cn } from "@/lib/utils";
+import { studentsInModule } from "@/lib/utils/student-access";
 import type { User } from "@/lib/types";
 
 interface Message { from: "me" | "student"; text: string; at: string }
 
 export default function LecturerMessages() {
-  const { currentUser, modules, users } = useStore();
+  const { currentUser, modules, programs, users } = useStore();
   const myModules = modules.filter((m) => m.lecturerIds.includes(currentUser?.id ?? ""));
   const [moduleId, setModuleId] = useState(myModules[0]?.id ?? "");
   const mod = myModules.find((m) => m.id === moduleId);
-  const enrolled = users.filter((u) => u.role === "cohort-student" && (u.programId === mod?.programId || u.crossEnrolledModuleIds?.includes(moduleId)));
+  // Recipients by enrollment — includes cross-enrolled Open Learning students.
+  const enrolled = studentsInModule(users, programs, moduleId);
   const [activeStudent, setActiveStudent] = useState<User | null>(null);
   const [draft, setDraft] = useState("");
   // Module-scoped mock conversations, keyed by `${moduleId}:${studentId}` (local only).

@@ -17,6 +17,7 @@ import {
 import { useStore } from "@/lib/store/provider";
 import { roleLabels } from "@/lib/nav-config";
 import { relativeTime } from "@/lib/utils/date";
+import { AcademicYearSwitcher } from "@/components/shared/AcademicYearSwitcher";
 
 export function TopNav() {
   const router = useRouter();
@@ -39,6 +40,8 @@ export function TopNav() {
         <Input placeholder="Search..." className="pl-9 h-9 rounded-full bg-muted/60 border-transparent focus-visible:bg-background" />
       </div>
       <div className="flex-1 md:hidden" />
+
+      <AcademicYearSwitcher />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

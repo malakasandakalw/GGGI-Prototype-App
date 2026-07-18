@@ -1,8 +1,8 @@
 import {
   LayoutDashboard, Users, BookMarked, Globe, Settings, ScrollText,
   UserCog, Calendar, BarChart3, Megaphone, ClipboardList, ArrowLeftRight,
-  Receipt, Layers, CheckCircle, CheckSquare, ClipboardCheck, Award,
-  BookOpen, FileText, Search, MessageSquare,
+  Receipt, Layers, ClipboardCheck, Award,
+  BookOpen, FileText, Search, MessageSquare, TrendingUp,
 } from "lucide-react";
 import type { NavItem, Role } from "@/lib/types";
 
@@ -32,6 +32,7 @@ export const navConfig: Record<Role, NavItem[]> = {
   registrar: [
     { label: "Dashboard", icon: LayoutDashboard, href: "/registrar/dashboard" },
     { label: "Applications", icon: ClipboardList, href: "/registrar/applications" },
+    { label: "Program Clerks", icon: UserCog, href: "/registrar/clerks" },
     { label: "Students", icon: Users, href: "/registrar/students" },
     { label: "Cross-Enrollment", icon: ArrowLeftRight, href: "/registrar/cross-enrollment" },
     { label: "Payment Log", icon: Receipt, href: "/registrar/payments" },
@@ -42,8 +43,6 @@ export const navConfig: Record<Role, NavItem[]> = {
     { label: "Programs", icon: BookMarked, href: "/hod/programs" },
     { label: "Modules", icon: Layers, href: "/hod/modules" },
     { label: "Lecturers", icon: UserCog, href: "/hod/lecturers" },
-    { label: "Verify Lectures", icon: CheckCircle, href: "/hod/verification/lectures", badge: "pending-lectures" },
-    { label: "Verify Quizzes", icon: CheckSquare, href: "/hod/verification/quizzes", badge: "pending-quizzes" },
     { label: "Exam Calendar", icon: Calendar, href: "/hod/calendar" },
     { label: "Gradebook", icon: ClipboardCheck, href: "/hod/gradebook" },
     { label: "Results", icon: Award, href: "/hod/results" },
@@ -65,6 +64,7 @@ export const navConfig: Record<Role, NavItem[]> = {
     { label: "Exam Calendar", icon: Calendar, href: "/cohort-student/calendar" },
     { label: "Grades", icon: Award, href: "/cohort-student/grades" },
     { label: "Transcript", icon: FileText, href: "/cohort-student/transcript" },
+    { label: "Progression", icon: TrendingUp, href: "/cohort-student/progression" },
     { label: "Cross-Enrollment", icon: ArrowLeftRight, href: "/cohort-student/cross-enrollment" },
     { label: "Explore (OL)", icon: Globe, href: "/cohort-student/explore" },
   ],
@@ -76,6 +76,34 @@ export const navConfig: Record<Role, NavItem[]> = {
     { label: "Cohort Modules", icon: ArrowLeftRight, href: "/ol-student/cross-enrollment" },
   ],
 };
+
+// Unified student navigation (Phase 2). Both student roles render this one list.
+// OL items are always shown (anyone can browse/enrol); cohort items appear only once the
+// student actually has cohort access (own programme or a cross-enrolled module).
+// `role` decides only which own-tree Dashboard / Cross-Enrollment page the entry points at —
+// the cohort content routes are shared and not role-locked.
+export function studentNavItems(opts: { role: Role; hasCohortAccess: boolean }): NavItem[] {
+  const { role, hasCohortAccess } = opts;
+  const items: NavItem[] = [
+    { label: "Dashboard", icon: LayoutDashboard, href: `/${role}/dashboard` },
+  ];
+  if (hasCohortAccess) {
+    items.push(
+      { label: "My Modules", icon: Layers, href: "/cohort-student/modules" },
+      { label: "Exam Calendar", icon: Calendar, href: "/cohort-student/calendar" },
+      { label: "Grades", icon: Award, href: "/cohort-student/grades" },
+      { label: "Transcript", icon: FileText, href: "/cohort-student/transcript" },
+      { label: "Progression", icon: TrendingUp, href: "/cohort-student/progression" },
+    );
+  }
+  items.push(
+    { label: "Course Catalog", icon: Search, href: "/ol-student/catalog" },
+    { label: "My OL Courses", icon: BookOpen, href: "/ol-student/courses" },
+    { label: "Certificates", icon: Award, href: "/ol-student/certificates" },
+    { label: "Cross-Enrollment", icon: ArrowLeftRight, href: `/${role}/cross-enrollment` },
+  );
+  return items;
+}
 
 export const roleLabels: Record<Role, string> = {
   "super-admin": "Super Admin",

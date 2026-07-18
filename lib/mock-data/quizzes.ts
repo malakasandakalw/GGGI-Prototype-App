@@ -65,7 +65,7 @@ export const quizzes: Quiz[] = [
     allowedAttempts: 2,
     randomiseOrder: true,
     showAnswersAfter: false,
-    status: "submitted",
+    status: "active",
     createdByLecturerId: "u-lec1",
     submittedAt: "2026-02-18T15:00:00Z",
     questions: [
@@ -113,7 +113,7 @@ export const quizzes: Quiz[] = [
     allowedAttempts: 1,
     randomiseOrder: false,
     showAnswersAfter: true,
-    status: "submitted",
+    status: "active",
     createdByLecturerId: "u-lec2",
     submittedAt: "2026-02-13T12:00:00Z",
     questions: [

@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import { useStore } from "@/lib/store/provider";
 import { formatDate } from "@/lib/utils/date";
+import { studentsInModule } from "@/lib/utils/student-access";
 
 export default function ModuleHub() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +61,8 @@ export default function ModuleHub() {
   const moduleAssignments = assignments.filter((a) => a.moduleId === m.id);
   const moduleQuizzes = quizzes.filter((q) => q.moduleId === m.id);
   const prog = programs.find((p) => p.id === m.programId);
-  const enrolled = users.filter((u) => u.role === "cohort-student" && (u.programId === m.programId || u.crossEnrolledModuleIds?.includes(m.id)));
+  // Roster by enrollment — includes cross-enrolled Open Learning students, not just cohort-role.
+  const enrolled = studentsInModule(users, programs, m.id);
   const moduleThreads = discussions.filter((d) => d.moduleId === m.id);
   const moduleAnnouncements = store.announcements.filter((a) => a.moduleId === m.id);
 

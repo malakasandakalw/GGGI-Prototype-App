@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Layers, FileClock, ClipboardList, CheckSquare } from "lucide-react";
 import { StatCard } from "@/components/shared/StatCard";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AcademicYearChip } from "@/components/shared/AcademicYearChip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ export default function LecturerDashboard() {
 
   return (
     <div>
-      <PageHeader title={`Welcome, ${currentUser?.name}`} description="Your modules and outstanding tasks." />
+      <PageHeader title={`Welcome, ${currentUser?.name}`} description="Your modules and outstanding tasks."><AcademicYearChip /></PageHeader>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="My Active Modules" value={myModules.length} icon={Layers} />
         <StatCard title="Lectures in Draft" value={drafts.length} icon={FileClock} variant="warning" />
@@ -48,13 +49,6 @@ export default function LecturerDashboard() {
         <Card>
           <CardHeader><CardTitle className="text-base">To-Do</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
-            {drafts.filter((l) => l.hodFeedback).map((l) => (
-              <div key={l.id} className="border-b pb-2">
-                <p className="font-medium">Returned: {l.title}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">{l.hodFeedback}</p>
-                <Link href={`/lecturer/modules/${l.moduleId}/lectures/${l.id}`} className="text-primary text-xs hover:underline">Revise →</Link>
-              </div>
-            ))}
             <div className="border-b pb-2"><p className="font-medium">{ungraded} ungraded submission(s)</p><p className="text-xs text-muted-foreground">Across your assignments</p></div>
             <div><p className="font-medium">Quiz short-answers awaiting marking</p></div>
           </CardContent>

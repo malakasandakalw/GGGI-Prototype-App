@@ -50,8 +50,8 @@ export default function SuperAdminOL() {
 
   function publish(c: OLCourse) {
     updateOLCourse(c.id, { status: "published" });
-    addAudit({ action: "Content Verified", details: `Approved & published OL course: ${c.title}` });
-    toast.success("Course approved & published");
+    addAudit({ action: "Content Published", details: `Published OL course: ${c.title}` });
+    toast.success("Course published");
     setView(null);
     setPublishedInfo(true);
   }
@@ -84,7 +84,7 @@ export default function SuperAdminOL() {
               <p className="text-xs text-muted-foreground">{lecturerName(c.lecturerId)} · {enrollCount(c.id)} enrolled</p>
               <div className="flex flex-wrap gap-2 pt-1">
                 <Button size="sm" variant="outline" onClick={() => setView(c)}>View</Button>
-                {c.status === "draft" && <Button size="sm" onClick={() => publish(c)}>Approve &amp; Publish</Button>}
+                {c.status === "draft" && <Button size="sm" onClick={() => publish(c)}>Publish</Button>}
                 {c.status !== "archived" && (
                   <Button size="sm" variant="ghost" onClick={() => { updateOLCourse(c.id, { status: "archived" }); toast.success("Course archived"); }}>Archive</Button>
                 )}
@@ -125,7 +125,7 @@ export default function SuperAdminOL() {
                   {view.sections.length === 0 && <p className="text-xs text-muted-foreground">No content added yet.</p>}
                 </div>
               </div>
-              {view.status === "draft" && <Button className="w-full" onClick={() => publish(view)}>Approve &amp; Publish</Button>}
+              {view.status === "draft" && <Button className="w-full" onClick={() => publish(view)}>Publish</Button>}
             </div>
           )}
         </SheetContent>

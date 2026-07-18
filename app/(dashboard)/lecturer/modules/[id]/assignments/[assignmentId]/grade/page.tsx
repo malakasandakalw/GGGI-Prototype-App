@@ -16,14 +16,15 @@ import { Badge } from "@/components/ui/badge";
 import { useStore } from "@/lib/store/provider";
 import { formatDateTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils";
+import { studentsInModule } from "@/lib/utils/student-access";
 
 export default function GradeAssignment() {
   const { id, assignmentId } = useParams<{ id: string; assignmentId: string }>();
   const router = useRouter();
-  const { assignments, submissions, modules, users, upsertSubmission, addNotification } = useStore();
+  const { assignments, submissions, programs, users, upsertSubmission, addNotification } = useStore();
   const assignment = assignments.find((a) => a.id === assignmentId);
-  const m = modules.find((x) => x.id === id);
-  const enrolled = users.filter((u) => u.role === "cohort-student" && (u.programId === m?.programId || u.crossEnrolledModuleIds?.includes(id)));
+  // Grade list by enrollment — includes cross-enrolled Open Learning students.
+  const enrolled = studentsInModule(users, programs, id);
   const [selectedId, setSelectedId] = useState<string>(enrolled[0]?.id ?? "");
   const [marks, setMarks] = useState("");
   const [feedback, setFeedback] = useState("");

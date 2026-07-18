@@ -1,4 +1,6 @@
+export * from "./academicYears";
 export * from "./users";
+export * from "./clerks";
 export * from "./programs";
 export * from "./modules";
 export * from "./lectures";

@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 export interface PageHeaderProps {
   title: string;
   description?: string;
-  action?: { label: string; onClick: () => void; icon?: LucideIcon };
+  action?: { label: string; onClick: () => void; icon?: LucideIcon; disabled?: boolean };
   children?: React.ReactNode;
 }
 
@@ -19,7 +19,7 @@ export function PageHeader({ title, description, action, children }: PageHeaderP
       <div className="flex items-center gap-2 shrink-0">
         {children}
         {action && (
-          <Button onClick={action.onClick}>
+          <Button onClick={action.onClick} disabled={action.disabled}>
             {Icon && <Icon className="size-4" />}
             {action.label}
           </Button>

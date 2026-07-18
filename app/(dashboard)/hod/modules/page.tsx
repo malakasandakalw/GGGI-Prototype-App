@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { InfoDialog } from "@/components/shared/InfoDialog";
+import { AcademicYearSelect } from "@/components/shared/AcademicYearSelect";
+import { useYearScope } from "@/hooks/use-year-scope";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,8 +32,9 @@ import type { Module, User } from "@/lib/types";
 
 export default function HODModules() {
   const { currentUser, modules, programs, users, assignments, submissions, lectures, moduleGrades, updateModule } = useStore();
+  const { isModuleInYear } = useYearScope();
   const dept = currentUser?.department;
-  const deptModules = modules.filter((m) => programs.find((p) => p.id === m.programId)?.department === dept);
+  const deptModules = modules.filter((m) => isModuleInYear(m.id) && programs.find((p) => p.id === m.programId)?.department === dept);
   const lecturers = users.filter((u) => u.role === "lecturer" && u.department === dept);
   const [program, setProgram] = useState("all");
   const [status, setStatus] = useState("all");
@@ -125,6 +128,7 @@ export default function HODModules() {
         searchPlaceholder="Search module name or code"
         filters={
           <>
+            <AcademicYearSelect />
             <Select value={program} onValueChange={setProgram}>
               <SelectTrigger className="w-44"><SelectValue placeholder="Program" /></SelectTrigger>
               <SelectContent><SelectItem value="all">All Programs</SelectItem>{programs.filter((p) => p.department === dept).map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
@@ -266,7 +270,7 @@ export default function HODModules() {
         open={!!assignInfo}
         onOpenChange={(o) => !o && setAssignInfo(null)}
         title="Lecturer assigned"
-        description={<><strong>{assignInfo?.lecturer}</strong> assigned to <strong>{assignInfo?.module}</strong> and notified. They can now upload lectures and build quizzes — all of which come back to <strong>you</strong> for verification before students see them.</>}
+        description={<><strong>{assignInfo?.lecturer}</strong> assigned to <strong>{assignInfo?.module}</strong> and notified. They can now upload lectures and build quizzes, which they <strong>publish directly to students</strong> — they&apos;re responsible for ensuring the content is correct.</>}
       />
 
       <InfoDialog
