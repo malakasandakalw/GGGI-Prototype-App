@@ -12,56 +12,15 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { useStore } from "@/lib/store/provider";
 import { formatDate } from "@/lib/utils/date";
-
-interface Escalation {
-  id: string;
-  title: string;
-  raisedBy: string;
-  against: string;
-  program: string;
-  detail: string;
-  raisedAt: string;
-  status: "open" | "resolved";
-  resolution?: string;
-}
-
-const seed: Escalation[] = [
-  {
-    id: "esc-1",
-    title: "Disagreement over lecture publishing timeline",
-    raisedBy: "Dr. Nimal Perera (HOD, Computing)",
-    against: "Mr. Kasun Silva (Lecturer)",
-    program: "BSc (Hons) Computer Science",
-    detail: "The HOD reports repeated delays in publishing lecture content, leaving students without materials on time.",
-    raisedAt: "2026-06-24",
-    status: "open",
-  },
-  {
-    id: "esc-2",
-    title: "Assessment weighting dispute for CS201",
-    raisedBy: "Ms. Ayesha Fernando (Lecturer)",
-    against: "Dr. Nimal Perera (HOD, Computing)",
-    program: "BSc (Hons) Computer Science",
-    detail: "Lecturer requests review of the assignment/quiz split imposed for the module against the approved breakdown.",
-    raisedAt: "2026-06-19",
-    status: "open",
-  },
-  {
-    id: "esc-3",
-    title: "Shared module ownership clarification",
-    raisedBy: "Dr. Ruwan Jayasuriya (HOD, Business)",
-    against: "Mr. Kasun Silva (Lecturer)",
-    program: "Diploma in Business Management",
-    detail: "Question over who is responsible for grading a cross-stream shared module.",
-    raisedAt: "2026-06-10",
-    status: "resolved",
-    resolution: "Confirmed the primary lecturer owns grading; secondary lecturer supports content only.",
-  },
-];
+import type { Escalation } from "@/lib/types";
 
 export default function ProgramAdminEscalations() {
-  const [items, setItems] = useState<Escalation[]>(seed);
+  const { currentUser, escalations, programs, resolveEscalation } = useStore();
+  // Program Admin sees escalations for the programmes they own.
+  const myProgramIds = currentUser?.programIds ?? programs.map((p) => p.id);
+  const items = escalations.filter((e) => !e.programId || myProgramIds.includes(e.programId));
   const [resolve, setResolve] = useState<Escalation | null>(null);
   const [note, setNote] = useState("");
   const [resolvedInfo, setResolvedInfo] = useState(false);
@@ -71,7 +30,7 @@ export default function ProgramAdminEscalations() {
 
   function submitResolution() {
     if (!resolve) return;
-    setItems((prev) => prev.map((i) => (i.id === resolve.id ? { ...i, status: "resolved", resolution: note } : i)));
+    resolveEscalation(resolve.id, note);
     toast.success("Escalation resolved");
     setResolve(null); setNote("");
     setResolvedInfo(true);
@@ -84,8 +43,8 @@ export default function ProgramAdminEscalations() {
           <p className="font-medium">{e.title}</p>
           <Badge variant={e.status === "open" ? "destructive" : "secondary"} className="capitalize shrink-0">{e.status}</Badge>
         </div>
-        <p className="text-xs text-muted-foreground">{e.program} · raised {formatDate(e.raisedAt)}</p>
-        <p className="text-sm"><span className="text-muted-foreground">Raised by</span> {e.raisedBy} <span className="text-muted-foreground">against</span> {e.against}</p>
+        <p className="text-xs text-muted-foreground">{e.program || "—"} · raised {formatDate(e.raisedAt)}</p>
+        <p className="text-sm"><span className="text-muted-foreground">Raised by</span> {e.raisedByName} <span className="text-muted-foreground">against</span> {e.againstName}</p>
         <p className="text-sm text-muted-foreground">{e.detail}</p>
         {e.resolution && <p className="text-sm rounded bg-muted p-2"><span className="font-medium">Resolution: </span>{e.resolution}</p>}
         {e.status === "open" && (

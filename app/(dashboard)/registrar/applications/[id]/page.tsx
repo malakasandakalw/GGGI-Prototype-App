@@ -28,7 +28,7 @@ const NEXT_STATUSES: ApplicationStatus[] = ["under-review", "payment-pending", "
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { applications, programs, intakes, updateApplication, addUser, addNotification, sendPaymentReminder } = useStore();
+  const { applications, programs, intakes, updateApplication, addUser, updateIntake, addNotification, sendPaymentReminder } = useStore();
   const app = applications.find((a) => a.id === id);
 
   const [status, setStatus] = useState<ApplicationStatus | "">("");
@@ -83,6 +83,9 @@ export default function ApplicationDetail() {
       intakeId,
       currentSemesterId: program?.semesters[0]?.id,
     });
+    // Keep the intake roster in sync so capacity/counts and reports reflect the new student.
+    const targetIntake = intakes.find((i) => i.id === intakeId);
+    if (targetIntake) updateIntake(intakeId, { enrolledStudentIds: [...targetIntake.enrolledStudentIds, u.id] });
     updateApplication(app!.id, { status: "enrolled" });
     addNotification({ recipientId: u.id, title: "Welcome to the University", body: "Your student account has been created.", type: "system" });
     setCreateOpen(false);

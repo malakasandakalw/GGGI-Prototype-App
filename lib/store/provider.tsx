@@ -12,8 +12,10 @@ import type {
   CalendarEvent,
   Clerk,
   CrossEnrollmentRequest,
+  DirectMessage,
   DiscussionReply,
   DiscussionThread,
+  Escalation,
   GradeBand,
   Intake,
   Lecture,
@@ -73,6 +75,8 @@ interface StoreValue {
   auditEvents: AuditEvent[];
   calendarEvents: CalendarEvent[];
   announcements: Announcement[];
+  escalations: Escalation[];
+  directMessages: DirectMessage[];
   discussions: DiscussionThread[];
   gradeBands: GradeBand[];
   notificationTemplates: NotificationTemplate[];
@@ -151,6 +155,13 @@ interface StoreValue {
   // announcements
   addAnnouncement: (a: Partial<Announcement> & { title: string; body: string }) => void;
 
+  // escalations
+  addEscalation: (e: Partial<Escalation> & { title: string; detail: string; againstName: string }) => Escalation;
+  resolveEscalation: (id: string, resolution: string) => void;
+
+  // direct messages (lecturer <-> student, module-scoped)
+  sendMessage: (m: { moduleId: string; lecturerId: string; studentId: string; from: "lecturer" | "student"; text: string }) => void;
+
   // discussions
   addThread: (t: Partial<DiscussionThread> & { moduleId: string; title: string; body: string }) => void;
   addReply: (threadId: string, body: string) => void;
@@ -191,6 +202,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>(mock.auditEvents);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(mock.calendarEvents);
   const [announcements, setAnnouncements] = useState<Announcement[]>(mock.announcements);
+  const [escalations, setEscalations] = useState<Escalation[]>(mock.escalations);
+  const [directMessages, setDirectMessages] = useState<DirectMessage[]>(mock.directMessages);
   const [discussions, setDiscussions] = useState<DiscussionThread[]>(mock.discussionThreads);
   const [gradeBands, setGradeBands] = useState<GradeBand[]>(DEFAULT_GRADE_BANDS);
   const [notificationTemplates, setNotificationTemplates] = useState<NotificationTemplate[]>(mock.notificationTemplates);
@@ -289,6 +302,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       auditEvents,
       calendarEvents,
       announcements,
+      escalations,
+      directMessages,
       discussions,
       gradeBands,
       notificationTemplates,
@@ -759,6 +774,75 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ...prev,
         ]),
 
+      addEscalation: (e) => {
+        const newE: Escalation = {
+          id: uid("esc"),
+          raisedById: currentUser?.id ?? "",
+          raisedByName: currentUser?.name ?? "",
+          raisedByRole: currentUser?.role ?? "hod",
+          program: "",
+          raisedAt: new Date().toISOString(),
+          status: "open",
+          ...e,
+        } as Escalation;
+        setEscalations((prev) => [newE, ...prev]);
+        // Route to the Program Admin to resolve, and notify the counter-party.
+        addNotification({
+          recipientId: "u-pa",
+          title: "New escalation raised",
+          body: `${newE.raisedByName} raised "${newE.title}".`,
+          type: "system",
+          linkTo: "/program-admin/escalations",
+        });
+        if (newE.againstId) {
+          addNotification({
+            recipientId: newE.againstId,
+            title: "An escalation names you",
+            body: `${newE.raisedByName} raised "${newE.title}" to the Program Admin.`,
+            type: "system",
+          });
+        }
+        addAudit({ action: "Escalation Raised", details: `Raised "${newE.title}" against ${newE.againstName}` });
+        return newE;
+      },
+      resolveEscalation: (id, resolution) => {
+        const target = escalations.find((x) => x.id === id);
+        setEscalations((prev) =>
+          prev.map((x) =>
+            x.id === id
+              ? { ...x, status: "resolved", resolution, resolvedById: currentUser?.id ?? "u-pa", resolvedAt: new Date().toISOString() }
+              : x,
+          ),
+        );
+        if (target) {
+          [target.raisedById, target.againstId].filter(Boolean).forEach((rid) =>
+            addNotification({
+              recipientId: rid as string,
+              title: "Escalation resolved",
+              body: `"${target.title}" was resolved by the Program Admin.`,
+              type: "system",
+            }),
+          );
+          addAudit({ action: "Escalation Resolved", details: `Resolved "${target.title}"` });
+        }
+      },
+
+      sendMessage: ({ moduleId, lecturerId, studentId, from, text }) => {
+        setDirectMessages((prev) => [
+          ...prev,
+          { id: uid("dm"), moduleId, lecturerId, studentId, from, text, at: new Date().toISOString() },
+        ]);
+        const mod = modules.find((m) => m.id === moduleId);
+        const recipientId = from === "lecturer" ? studentId : lecturerId;
+        addNotification({
+          recipientId,
+          title: "New message",
+          body: `${currentUser?.name ?? "Someone"} sent you a message in ${mod?.code ?? "a module"}.`,
+          type: "system",
+          linkTo: from === "lecturer" ? "/cohort-student/messages" : "/lecturer/messages",
+        });
+      },
+
       addThread: (t) =>
         setDiscussions((prev) => [
           {
@@ -806,8 +890,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     academicYears, activeAcademicYearId,
     currentUser, users, clerks, programs, intakes, modules, lectures, assignments, submissions, quizzes,
     quizSubmissions, applications, crossEnrollments, moduleGrades, caSubmittedModuleIds, olCourses, olEnrollments,
-    olCategories, notifications, auditEvents, calendarEvents, announcements, discussions, gradeBands,
-    notificationTemplates, systemSettings,
+    olCategories, notifications, auditEvents, calendarEvents, announcements, escalations, directMessages,
+    discussions, gradeBands, notificationTemplates, systemSettings,
   ]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

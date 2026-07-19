@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MoreHorizontal, X, Download } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -121,6 +122,10 @@ export default function HODModules() {
   return (
     <div>
       <PageHeader title="Modules" description="Manage all modules across your department." />
+      <p className="text-sm text-muted-foreground -mt-2 mb-4">
+        Here you assign lecturers and oversee content. New modules are created within a programme —
+        open <Link href="/hod/programs" className="text-primary underline underline-offset-2">Programs</Link>, choose a programme, then add a module to a semester.
+      </p>
       <DataTable
         columns={columns}
         data={filtered}

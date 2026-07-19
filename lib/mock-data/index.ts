@@ -14,4 +14,6 @@ export * from "./notifications";
 export * from "./audit";
 export * from "./calendar";
 export * from "./announcements";
+export * from "./escalations";
+export * from "./messages";
 export * from "./settings";
