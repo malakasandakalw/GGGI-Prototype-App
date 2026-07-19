@@ -45,7 +45,7 @@ export default function ProgramAdminModules() {
 
       <Alert className="mb-4">
         <Lock className="size-4" />
-        <AlertDescription>Read-only view. Program Admins can review module structure but cannot edit content or enter grades — that stays with Lecturers and HODs.</AlertDescription>
+        <AlertDescription>Read-only view. Modules are created by HODs within a programme (Programs → a programme → semester); Program Admins can review module structure but cannot edit content or enter grades — that stays with Lecturers and HODs.</AlertDescription>
       </Alert>
 
       <div className="mb-4 max-w-xs">

@@ -48,15 +48,18 @@ export const navConfig: Record<Role, NavItem[]> = {
     { label: "Results", icon: Award, href: "/hod/results" },
     { label: "Reports", icon: BarChart3, href: "/hod/reports" },
     { label: "Announcements", icon: Megaphone, href: "/hod/announcements" },
+    { label: "Escalations", icon: MessageSquare, href: "/hod/escalations" },
     { label: "Open Learning", icon: Globe, href: "/hod/open-learning" },
   ],
   lecturer: [
     { label: "Dashboard", icon: LayoutDashboard, href: "/lecturer/dashboard" },
     { label: "My Modules", icon: Layers, href: "/lecturer/modules" },
+    { label: "Announcements", icon: Megaphone, href: "/announcements" },
     { label: "Open Learning", icon: Globe, href: "/lecturer/open-learning" },
     { label: "Messages", icon: MessageSquare, href: "/lecturer/messages" },
     { label: "Exam Calendar", icon: Calendar, href: "/lecturer/calendar" },
     { label: "Reports", icon: BarChart3, href: "/lecturer/reports" },
+    { label: "Escalations", icon: ClipboardList, href: "/lecturer/escalations" },
   ],
   "cohort-student": [
     { label: "Dashboard", icon: LayoutDashboard, href: "/cohort-student/dashboard" },
@@ -86,6 +89,7 @@ export function studentNavItems(opts: { role: Role; hasCohortAccess: boolean }):
   const { role, hasCohortAccess } = opts;
   const items: NavItem[] = [
     { label: "Dashboard", icon: LayoutDashboard, href: `/${role}/dashboard` },
+    { label: "Announcements", icon: Megaphone, href: "/announcements" },
   ];
   if (hasCohortAccess) {
     items.push(
@@ -94,6 +98,7 @@ export function studentNavItems(opts: { role: Role; hasCohortAccess: boolean }):
       { label: "Grades", icon: Award, href: "/cohort-student/grades" },
       { label: "Transcript", icon: FileText, href: "/cohort-student/transcript" },
       { label: "Progression", icon: TrendingUp, href: "/cohort-student/progression" },
+      { label: "Messages", icon: MessageSquare, href: "/cohort-student/messages" },
     );
   }
   items.push(

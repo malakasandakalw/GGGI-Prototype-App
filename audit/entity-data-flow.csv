@@ -1,0 +1,31 @@
+Entity,Shown At (URL),Created At (URL),Creator Role,Viewer Roles,Status,Notes
+Staff users (PA/Registrar/HOD/Lecturer),/super-admin/users,/super-admin/users,Super Admin,Super Admin,OK,Central user register
+Lecturer accounts,"/hod/lecturers, /hod/modules","/hod/lecturers, /super-admin/users","HOD (own dept), Super Admin","HOD, Program Admin",OK,Created on the Lecturers page itself
+HOD accounts,/program-admin/hods,"/program-admin/hods, /super-admin/users","Program Admin, Super Admin",Program Admin,OK,
+Program Clerks,/registrar/clerks,/registrar/clerks,Registrar,Registrar,OK,Standalone record with no login role (by design)
+Cohort students,"/registrar/students, /hod/*, /lecturer/*","/registrar/applications/[id], /super-admin/users","Registrar (from application), Super Admin","Registrar, HOD, Lecturer",Fixed,BUG-1 fixed: enrolment now updates intake.enrolledStudentIds
+OL students,/super-admin/users,"/register, /super-admin/users","Public self-register, Super Admin",Super Admin,OK,
+Applications,"/registrar/applications, /registrar/applications/[id]",/apply,Applicant (public),Registrar,OK,Public application portal
+Intakes,"application portal, enrol dialog","/program-admin/programs, /registrar/students","Program Admin, Registrar","Applicant, Registrar",OK,
+Programs,"/hod/programs, /program-admin/programs, /super-admin/programs",/hod/programs,HOD (draft) -> PA (approve) -> SA (activate),"HOD, Program Admin, Super Admin",OK,Three-stage lifecycle
+Semesters,"/hod/programs/[id], student modules",/hod/programs/[id],HOD,"HOD, Students",OK,
+Modules,"/hod/modules, /program-admin/modules, /lecturer/modules, student modules",/hod/programs/[id],HOD,"HOD, Program Admin, Lecturer, Students",Fixed,DISC-1: added hint that modules are created within a programme
+Lecturer-module assignment,"/hod/modules, /lecturer/modules",/hod/modules,HOD,"HOD, Lecturer",OK,
+Lectures (+ resources),"student modules, HOD/PA oversight",/lecturer/modules/[id],Lecturer,"Lecturer, Students, HOD, Program Admin",OK,HOD is read-only oversight
+Assignments,"student module page, grade page",/lecturer/modules/[id],Lecturer,"Lecturer, Students",OK,
+Assignment submissions,"/lecturer/.../grade, HOD oversight",student assignment page,Student,"Lecturer, HOD",OK,
+Quizzes,"student quiz page, submissions view",/lecturer/modules/[id],Lecturer,"Lecturer, Students",OK,QuizBuilder
+Quiz submissions,/lecturer/.../submissions,student quiz page,Student,Lecturer,OK,
+CA marks + final grades,"/cohort-student/grades, transcript, results","/lecturer/modules/[id] (CA), /hod/gradebook (final), /hod/results (publish)",Lecturer -> HOD,"Student, HOD, Program Admin",Note,DISC-2: CA marks not auto-derived from graded submissions
+Cross-enrollment requests,/registrar/cross-enrollment,"/cohort-student/cross-enrollment, /ol-student/cross-enrollment, explore/catalog",Student,Registrar,OK,Registrar sets payment + approves -> auto-enrol
+OL courses,"catalog, /ol-student/*, explore",/hod/open-learning,"HOD (create), HOD/Lecturer (publish)","OL students, Cohort students",OK,
+OL enrolments / certificates,"/ol-student/courses, /ol-student/certificates","catalog/explore (enrol), lessons (complete)",Student,OL students,OK,
+Calendar / exam events,"every role calendar, dashboards","/hod/calendar, /program-admin/calendar","HOD, Program Admin",All,OK,
+Announcements (institution/program),/announcements,"/super-admin/announcements, /program-admin/announcements, /hod/announcements","Super Admin, Program Admin, HOD","Students, Lecturers",Fixed,GAP-2 fixed: added shared /announcements read feed
+Announcements (module),"module page, /announcements",/lecturer/modules/[id],Lecturer,Students,OK,
+Escalations,"/program-admin/escalations, /hod/escalations, /lecturer/escalations","/hod/escalations, /lecturer/escalations","HOD (vs lecturer), Lecturer (vs HOD)","Program Admin, HOD, Lecturer",Fixed,GAP-1 fixed: raise flow added; resolved by Program Admin
+Direct messages,"/lecturer/messages, /cohort-student/messages","/lecturer/messages, /cohort-student/messages","Lecturer, Student","Lecturer, Student",Fixed,GAP-3 fixed: two-way; student inbox added
+Discussions (Q&A threads),"module page (both sides)","student module page, OL viewer","Student, Lecturer","Student, Lecturer",OK,Symmetric
+Notifications,"/notifications, bell, dashboards",system-generated,System,All (by recipientId),OK,
+Audit events,/super-admin/audit-log,system-generated,System,Super Admin,OK,
+Settings / grade bands / templates,/super-admin/settings,/super-admin/settings,Super Admin,Super Admin,OK,

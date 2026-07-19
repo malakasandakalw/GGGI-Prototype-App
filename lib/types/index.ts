@@ -473,6 +473,37 @@ export interface DiscussionThread {
   resolved: boolean;
 }
 
+// Escalations — a dispute raised by an HOD (against a lecturer) or a Lecturer (against their
+// HOD), routed to the Program Admin to resolve.
+export interface Escalation {
+  id: string;
+  title: string;
+  raisedById: string;
+  raisedByName: string;
+  raisedByRole: Role;
+  againstId?: string;
+  againstName: string;
+  programId?: string;
+  program: string; // programme name label (denormalised for display)
+  detail: string;
+  raisedAt: string;
+  status: "open" | "resolved";
+  resolvedById?: string;
+  resolvedAt?: string;
+  resolution?: string;
+}
+
+// Direct messages — module-scoped 1:1 between a lecturer and one of their students.
+export interface DirectMessage {
+  id: string;
+  moduleId: string;
+  lecturerId: string;
+  studentId: string;
+  from: "lecturer" | "student";
+  text: string;
+  at: string;
+}
+
 // Grading scheme
 export interface GradeBand {
   grade: string;

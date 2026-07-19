@@ -16,10 +16,8 @@ import { cn } from "@/lib/utils";
 import { studentsInModule } from "@/lib/utils/student-access";
 import type { User } from "@/lib/types";
 
-interface Message { from: "me" | "student"; text: string; at: string }
-
 export default function LecturerMessages() {
-  const { currentUser, modules, programs, users } = useStore();
+  const { currentUser, modules, programs, users, directMessages, sendMessage } = useStore();
   const myModules = modules.filter((m) => m.lecturerIds.includes(currentUser?.id ?? ""));
   const [moduleId, setModuleId] = useState(myModules[0]?.id ?? "");
   const mod = myModules.find((m) => m.id === moduleId);
@@ -27,19 +25,18 @@ export default function LecturerMessages() {
   const enrolled = studentsInModule(users, programs, moduleId);
   const [activeStudent, setActiveStudent] = useState<User | null>(null);
   const [draft, setDraft] = useState("");
-  // Module-scoped mock conversations, keyed by `${moduleId}:${studentId}` (local only).
-  const [threads, setThreads] = useState<Record<string, Message[]>>({});
 
-  const keyFor = (sid: string) => `${moduleId}:${sid}`;
-  const seed: Message[] = [{ from: "student", text: "Hello, I have a question about the latest assignment — is the deadline firm?", at: "2026-06-30T10:12" }];
-  const messages = activeStudent ? (threads[keyFor(activeStudent.id)] ?? seed) : [];
+  const messages = activeStudent
+    ? directMessages
+        .filter((d) => d.moduleId === moduleId && d.studentId === activeStudent.id && d.lecturerId === currentUser?.id)
+        .sort((a, b) => a.at.localeCompare(b.at))
+    : [];
 
   function send() {
-    if (!activeStudent || !draft.trim()) return;
-    const key = keyFor(activeStudent.id);
-    setThreads((prev) => ({ ...prev, [key]: [...(prev[key] ?? seed), { from: "me", text: draft, at: new Date().toISOString() }] }));
+    if (!activeStudent || !draft.trim() || !currentUser) return;
+    sendMessage({ moduleId, lecturerId: currentUser.id, studentId: activeStudent.id, from: "lecturer", text: draft });
     setDraft("");
-    toast.success("Message sent (simulated)");
+    toast.success("Message sent");
   }
 
   return (
@@ -67,8 +64,9 @@ export default function LecturerMessages() {
             <>
               <div className="border-b pb-2 mb-3"><p className="font-semibold">{activeStudent.name}</p><p className="text-xs text-muted-foreground">{mod?.code} · Direct message</p></div>
               <div className="flex-1 space-y-2 overflow-y-auto">
-                {messages.map((msg, i) => (
-                  <div key={i} className={cn("max-w-[75%] rounded-lg px-3 py-2 text-sm", msg.from === "me" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted")}>
+                {messages.length === 0 && <p className="text-sm text-muted-foreground">No messages yet — say hello.</p>}
+                {messages.map((msg) => (
+                  <div key={msg.id} className={cn("max-w-[75%] rounded-lg px-3 py-2 text-sm", msg.from === "lecturer" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted")}>
                     {msg.text}
                   </div>
                 ))}

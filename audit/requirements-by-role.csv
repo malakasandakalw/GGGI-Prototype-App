@@ -1,0 +1,58 @@
+Role,Capability,Page URL,Action,Related Entity
+Super Admin,Create/manage all user accounts,/super-admin/users,Create/View,Users
+Super Admin,Activate programmes,/super-admin/programs,Update,Programs
+Super Admin,Manage Open Learning oversight,/super-admin/open-learning,View,OL courses
+Super Admin,Post institution announcements,/super-admin/announcements,Create,Announcements
+Super Admin,Configure system settings & grade bands,/super-admin/settings,Update,Settings
+Super Admin,Review audit log,/super-admin/audit-log,View,Audit events
+Super Admin,View institution reports,/super-admin/reports,View,Reports
+Program Admin,Approve/return submitted programmes,/program-admin/programs,Update,Programs
+Program Admin,Open intakes,/program-admin/programs,Create,Intakes
+Program Admin,Oversee modules (read-only),/program-admin/modules,View,Modules
+Program Admin,Review student results,/program-admin/results,View,Grades
+Program Admin,Create/manage HOD accounts,/program-admin/hods,Create/View,Users
+Program Admin,Manage academic calendar,/program-admin/calendar,Create,Calendar events
+Program Admin,Post programme announcements,/program-admin/announcements,Create,Announcements
+Program Admin,Resolve escalations,/program-admin/escalations,Update,Escalations
+Registrar,Review applications & update status,/registrar/applications/[id],Update,Applications
+Registrar,Create student account & enrol,/registrar/applications/[id],Create,Cohort students
+Registrar,Manage program clerks,/registrar/clerks,Create/View,Clerks
+Registrar,View student register,/registrar/students,View,Cohort students
+Registrar,Open intakes,/registrar/students,Create,Intakes
+Registrar,Process cross-enrollment,/registrar/cross-enrollment,Update,Cross-enrollment requests
+Registrar,Payment log,/registrar/payments,View,Applications
+HOD,Create programmes (draft) & submit,/hod/programs,Create/Update,Programs
+HOD,Add semesters & modules to a programme,/hod/programs/[id],Create,Semesters/Modules
+HOD,Assign lecturers & oversee modules,/hod/modules,Update/View,Modules
+HOD,Create/manage lecturer accounts,/hod/lecturers,Create/View,Users
+HOD,Enter final exam marks,/hod/gradebook,Update,Grades
+HOD,Publish results,/hod/results,Update,Grades
+HOD,Manage exam calendar,/hod/calendar,Create,Calendar events
+HOD,Post announcements,/hod/announcements,Create,Announcements
+HOD,Read announcements addressed to me,/announcements,View,Announcements
+HOD,Raise & track escalations (vs lecturer),/hod/escalations,Create/View,Escalations
+HOD,Create Open Learning courses,/hod/open-learning,Create,OL courses
+Lecturer,Build lectures & resources,/lecturer/modules/[id],Create,Lectures
+Lecturer,Build assignments,/lecturer/modules/[id],Create,Assignments
+Lecturer,Build quizzes,/lecturer/modules/[id],Create,Quizzes
+Lecturer,Enter CA marks & submit to HOD,/lecturer/modules/[id],Update,Grades
+Lecturer,Grade submissions,/lecturer/modules/[id]/assignments/[assignmentId]/grade,Update,Submissions
+Lecturer,Message students,/lecturer/messages,Create/View,Direct messages
+Lecturer,Read announcements addressed to me,/announcements,View,Announcements
+Lecturer,Raise & track escalations (vs HOD),/lecturer/escalations,Create/View,Escalations
+Lecturer,Publish Open Learning courses,/lecturer/open-learning,Update,OL courses
+Cohort Student,View & complete modules,/cohort-student/modules,View,Modules/Lectures
+Cohort Student,Submit assignments,/cohort-student/modules/[moduleId]/assignments/[assignmentId],Create,Submissions
+Cohort Student,Attempt quizzes,/cohort-student/modules/[moduleId]/quizzes/[quizId],Create,Quiz submissions
+Cohort Student,View grades / transcript / progression,"/cohort-student/grades, /cohort-student/transcript, /cohort-student/progression",View,Grades
+Cohort Student,Request cross-enrollment,/cohort-student/cross-enrollment,Create,Cross-enrollment requests
+Cohort Student,Message lecturers,/cohort-student/messages,Create/View,Direct messages
+Cohort Student,Read announcements addressed to me,/announcements,View,Announcements
+Cohort Student,Ask questions in discussions,/cohort-student/modules/[moduleId],Create,Discussions
+OL Student,Browse catalog & enrol,/ol-student/catalog,Create,OL enrolments
+OL Student,Take courses & lessons,/ol-student/courses,Update,OL enrolments
+OL Student,View certificates,/ol-student/certificates,View,Certificates
+OL Student,Cross-enrol into cohort modules,/ol-student/cross-enrollment,Create,Cross-enrollment requests
+OL Student,Read announcements addressed to me,/announcements,View,Announcements
+Applicant (public),Submit application,/apply,Create,Applications
+Public,Self-register as OL student,/register,Create,OL students
